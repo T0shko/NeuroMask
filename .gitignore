@@ -1,0 +1,53 @@
+# ============================================================
+# NeuroMask – .gitignore
+# ============================================================
+
+# ── AI Model weights (large binaries – download separately) ──
+*.onnx
+*.pth
+*.pt
+*.bin
+*.safetensors
+
+# ── Python cache ──
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# ── Python virtual environments ──
+venv/
+env/
+.venv/
+*.egg-info/
+
+# ── Installers / build tools ──
+*.exe
+*.msi
+
+# ── User-uploaded images (runtime data, not source code) ──
+assets/uploads/*
+!assets/uploads/.gitkeep
+
+# ── Generated swap results ──
+assets/results/*
+!assets/results/.gitkeep
+
+# ── IDE / editor ──
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+Thumbs.db
+.DS_Store
+
+# ── Logs ──
+*.log
+error_log
+
+# ── HuggingFace / InsightFace model caches ──
+hf_cache/
+insightface/
