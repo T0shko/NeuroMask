@@ -39,6 +39,12 @@ echo [INFO] Installing remaining required dependencies...
 python -m pip install -r requirements.txt
 
 echo.
+echo [INFO] PRE-CACHING SD1.5 INPAINTING MODELS (~4GB total — do NOT close this window)...
+echo [INFO]   - Lykon/dreamshaper-8-inpainting (SD1.5 photorealistic inpainting base, ~3GB)
+echo [INFO]   - h94/IP-Adapter-FaceID (identity adapter and LoRA, ~0.2GB)
+python -c "import os; os.environ['HF_HOME']=r'E:\NeuroMaskAI\hf_cache'; from huggingface_hub import hf_hub_download, snapshot_download; print('Downloading DreamShaper Inpainting...'); snapshot_download(repo_id='Lykon/dreamshaper-8-inpainting'); print('Downloading IP-Adapter FaceID and LoRA...'); hf_hub_download(repo_id='h94/IP-Adapter-FaceID', filename='ip-adapter-faceid_sd15.bin', local_dir=r'E:\NeuroMaskAI\hf_cache\instantid', local_dir_use_symlinks=False); hf_hub_download(repo_id='h94/IP-Adapter-FaceID', filename='ip-adapter-faceid_sd15_lora.safetensors', local_dir=r'E:\NeuroMaskAI\hf_cache\instantid', local_dir_use_symlinks=False); print('All models cached.')"
+
+echo.
 echo [INFO] Downloading GFPGANv1.4.pth model (Face Enhancement)...
 if not exist "GFPGANv1.4.pth" (
     powershell -Command "Invoke-WebRequest -Uri 'https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.4.pth' -OutFile 'GFPGANv1.4.pth'"

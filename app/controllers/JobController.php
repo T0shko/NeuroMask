@@ -92,12 +92,26 @@ class JobController
             return;
         }
 
+        // ── Determine Processing Mode ──
+        $modelTier = $_POST['model_tier'] ?? 'standard';
+        
+        if ($modelTier === 'hq') {
+            $userSub = $this->subModel->getUserSubscription($userId);
+            $planId = $userSub ? (int)$userSub['id'] : 1;
+            if ($planId < 2) {
+                // Not allowed, default to standard
+                $modelTier = 'standard';
+            }
+        }
+        
+        $effectType = ($modelTier === 'hq') ? 'faceswap-hq' : 'faceswap';
+
         // ── Create job record ──
         $jobId = $this->jobModel->create([
             'user_id'     => $userId,
             'source_path' => $sourceResult['filename'],
             'file_path'   => $targetResult['filename'],
-            'effect'      => 'faceswap',
+            'effect'      => $effectType,
         ]);
 
         // ── Trigger AI processing ──

@@ -43,7 +43,7 @@ require_once __DIR__ . '/../templates/admin_header.php';
         <form method="GET" action="" class="flex gap-1">
             <input type="text" name="search" class="form-control" placeholder="Search by name or email..."
                    value="<?= e($search) ?>" style="max-width: 400px;">
-            <button type="submit" class="btn btn-primary btn-sm">🔍 Search</button>
+            <button type="submit" class="btn btn-primary btn-sm"><i data-lucide="search" style="width:16px;"></i> Search</button>
             <?php if ($search): ?>
                 <a href="<?= url('admin/users.php') ?>" class="btn btn-secondary btn-sm">Clear</a>
             <?php endif; ?>
@@ -87,7 +87,7 @@ require_once __DIR__ . '/../templates/admin_header.php';
                                         <input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>">
                                         <button type="submit" class="btn btn-sm btn-secondary" title="Toggle role"
                                                 onclick="return confirm('Toggle role for <?= e($user['name']) ?>?')">
-                                            🔄
+                                            <i data-lucide="refresh-cw" style="width:16px;"></i>
                                         </button>
                                     </form>
                                     <?php if ((int)$user['id'] !== currentUserId()): ?>
@@ -97,7 +97,7 @@ require_once __DIR__ . '/../templates/admin_header.php';
                                         <input type="hidden" name="user_id" value="<?= (int)$user['id'] ?>">
                                         <button type="submit" class="btn btn-sm btn-danger" title="Delete user"
                                                 onclick="return confirm('Delete user <?= e($user['name']) ?>? This cannot be undone.')">
-                                            🗑️
+                                            <i data-lucide="trash-2" style="width:16px;"></i>
                                         </button>
                                     </form>
                                     <?php endif; ?>

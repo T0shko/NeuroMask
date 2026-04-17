@@ -22,7 +22,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <title><?= e($pageTitle ?? 'Dashboard') ?> – <?= APP_NAME ?></title>
     <meta name="description" content="<?= e($pageDescription ?? APP_TAGLINE) ?>">
     <link rel="stylesheet" href="<?= assetUrl('css/style.css') ?>">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔷</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2300e5ff'/></svg>">
 </head>
 <body>
 <div class="app-layout">
@@ -36,7 +36,6 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-            <div class="logo-icon">🔷</div>
             <span class="logo-text"><?= APP_NAME ?></span>
         </div>
 
@@ -44,26 +43,26 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <div class="nav-section">
                 <div class="nav-section-title">Main</div>
                 <a href="<?= publicUrl('dashboard.php') ?>" class="nav-link <?= $currentPage === 'dashboard.php' ? 'active' : '' ?>">
-                    <span class="nav-icon">📊</span>Dashboard
+                    <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span><span class="nav-text">Dashboard</span>
                 </a>
                 <a href="<?= publicUrl('upload.php') ?>" class="nav-link <?= $currentPage === 'upload.php' ? 'active' : '' ?>">
-                    <span class="nav-icon">🔄</span>Face Swap
+                    <span class="nav-icon"><i data-lucide="refresh-cw"></i></span><span class="nav-text">Face Swap</span>
                 </a>
                 <a href="<?= publicUrl('jobs.php') ?>" class="nav-link <?= $currentPage === 'jobs.php' ? 'active' : '' ?>">
-                    <span class="nav-icon">⚡</span>My Jobs
+                    <span class="nav-icon"><i data-lucide="zap"></i></span><span class="nav-text">My Jobs</span>
                 </a>
             </div>
 
             <div class="nav-section">
                 <div class="nav-section-title">Account</div>
                 <a href="<?= publicUrl('plans.php') ?>" class="nav-link <?= $currentPage === 'plans.php' ? 'active' : '' ?>">
-                    <span class="nav-icon">💎</span>Plans
+                    <span class="nav-icon"><i data-lucide="gem"></i></span><span class="nav-text">Plans</span>
                 </a>
                 <a href="<?= publicUrl('profile.php') ?>" class="nav-link <?= $currentPage === 'profile.php' ? 'active' : '' ?>">
-                    <span class="nav-icon">👤</span>Profile
+                    <span class="nav-icon"><i data-lucide="user"></i></span><span class="nav-text">Profile</span>
                 </a>
                 <a href="<?= publicUrl('contact.php') ?>" class="nav-link <?= $currentPage === 'contact.php' ? 'active' : '' ?>">
-                    <span class="nav-icon">✉️</span>Contact
+                    <span class="nav-icon"><i data-lucide="mail"></i></span><span class="nav-text">Contact</span>
                 </a>
             </div>
 
@@ -71,7 +70,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <div class="nav-section">
                 <div class="nav-section-title">Admin</div>
                 <a href="<?= url('admin/index.php') ?>" class="nav-link">
-                    <span class="nav-icon">🛡️</span>Admin Panel
+                    <span class="nav-icon"><i data-lucide="shield"></i></span><span class="nav-text">Admin Panel</span>
                 </a>
             </div>
             <?php endif; ?>
@@ -88,7 +87,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                 </div>
             </div>
             <a href="<?= publicUrl('logout.php') ?>" class="nav-link mt-1" style="color: var(--accent-red);">
-                <span class="nav-icon">🚪</span>Logout
+                <span class="nav-icon"><i data-lucide="log-out"></i></span><span class="nav-text">Logout</span>
             </a>
         </div>
     </aside>

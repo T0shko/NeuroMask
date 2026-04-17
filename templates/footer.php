@@ -2,6 +2,8 @@
 </div><!-- /.app-layout -->
 
 <!-- Global JavaScript -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
 <script src="<?= assetUrl('js/app.js') ?>"></script>
 
 <?php if (!empty($extraScripts)): ?>

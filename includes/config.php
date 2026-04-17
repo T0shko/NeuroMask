@@ -32,7 +32,7 @@ define('ALLOWED_TYPES', ['image/jpeg', 'image/png']);
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png']);
 
 // ── Python / AI Settings ──
-define('PYTHON_PATH', 'python');                                // or 'python3' on Linux/Mac
+define('PYTHON_PATH', 'E:\NeuroMaskAI\venv\Scripts\python.exe');
 define('AI_SCRIPT', BASE_PATH . '/ai/process.py');
 
 // ── Session Settings ──

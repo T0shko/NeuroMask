@@ -95,7 +95,7 @@ require_once __DIR__ . '/../templates/header.php';
                     <h3 class="card-title">Subscription</h3>
                 </div>
                 <div style="text-align: center;">
-                    <div style="font-size: 40px; margin-bottom: 8px;">💎</div>
+                    <div style="font-size: 40px; margin-bottom: 8px;"></div>
                     <div style="font-size: 20px; font-weight: 700; font-family: 'Outfit', sans-serif;">
                         <?= e($subscription['name'] ?? 'Basic') ?> Plan
                     </div>
@@ -118,7 +118,7 @@ require_once __DIR__ . '/../templates/header.php';
                 </div>
                 <?php if ($hasFaceData): ?>
                     <div style="text-align: center;">
-                        <div style="font-size: 40px; margin-bottom: 8px;">✅</div>
+                        <div style="font-size: 40px; margin-bottom: 8px;"></div>
                         <p class="text-sm text-muted">Face enrolled successfully.</p>
                         <button class="btn btn-secondary btn-sm mt-2" id="reEnrollFace">Re-enroll Face</button>
                         <button class="btn btn-danger btn-sm mt-1" id="removeFace">Remove</button>
@@ -138,7 +138,7 @@ require_once __DIR__ . '/../templates/header.php';
                         <canvas id="enrollCanvas"></canvas>
                     </div>
                     <div class="webcam-controls mt-2">
-                        <button class="btn btn-primary btn-sm" id="captureEnroll">📸 Capture</button>
+                        <button class="btn btn-primary btn-sm" id="captureEnroll"> Capture</button>
                         <button class="btn btn-secondary btn-sm" id="cancelEnroll">Cancel</button>
                     </div>
                     <p class="text-sm text-muted mt-1 text-center" id="enrollStatus">Position your face...</p>

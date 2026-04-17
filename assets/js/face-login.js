@@ -18,26 +18,36 @@ const FaceLogin = {
     REMOVE_URL: '/NeuroMask/app/controllers/FaceLoginController.php?action=remove',
 
     modelsLoaded: false,
+    modelsLoading: false,
+    modelsPromise: null,
     stream: null,
 
     /**
-     * Load face-api.js models from CDN.
+     * Load face-api.js models from CDN utilizing Promise.all for parallelism.
      */
     async loadModels() {
         if (this.modelsLoaded) return true;
+        if (this.modelsLoading) return this.modelsPromise;
 
-        try {
-            console.log('Loading face-api.js models...');
-            await faceapi.nets.tinyFaceDetector.loadFromUri(this.MODEL_URL);
-            await faceapi.nets.faceLandmark68Net.loadFromUri(this.MODEL_URL);
-            await faceapi.nets.faceRecognitionNet.loadFromUri(this.MODEL_URL);
+        this.modelsLoading = true;
+        console.log('Loading face-api.js models (optimized)...');
+        
+        this.modelsPromise = Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(this.MODEL_URL),
+            faceapi.nets.faceLandmark68Net.loadFromUri(this.MODEL_URL),
+            faceapi.nets.faceRecognitionNet.loadFromUri(this.MODEL_URL)
+        ]).then(() => {
             this.modelsLoaded = true;
-            console.log('Face models loaded successfully.');
+            this.modelsLoading = false;
+            console.log('Face models loaded successfully in parallel.');
             return true;
-        } catch (err) {
+        }).catch(err => {
             console.error('Failed to load face models:', err);
+            this.modelsLoading = false;
             return false;
-        }
+        });
+
+        return this.modelsPromise;
     },
 
     /**
@@ -46,10 +56,15 @@ const FaceLogin = {
     async startWebcam(videoElement) {
         try {
             this.stream = await navigator.mediaDevices.getUserMedia({
-                video: { width: 320, height: 240, facingMode: 'user' }
+                video: { width: 320, height: 240, facingMode: 'user', frameRate: { ideal: 30 } }
             });
             videoElement.srcObject = this.stream;
-            return true;
+            return new Promise((resolve) => {
+                videoElement.onloadedmetadata = () => {
+                    videoElement.play().catch(() => {});
+                    resolve(true);
+                };
+            });
         } catch (err) {
             console.error('Webcam error:', err);
             alert('Could not access webcam: ' + err.message);
@@ -71,8 +86,9 @@ const FaceLogin = {
      * Detect face and extract 128-float descriptor from a video element.
      */
     async detectFace(videoElement) {
+        const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.5 });
         const detection = await faceapi
-            .detectSingleFace(videoElement, new faceapi.TinyFaceDetectorOptions())
+            .detectSingleFace(videoElement, options)
             .withFaceLandmarks()
             .withFaceDescriptor();
 
@@ -136,79 +152,137 @@ const FaceLogin = {
 // ── Login Page: Face Login Flow ──
 document.addEventListener('DOMContentLoaded', () => {
 
+    // Pre-load face models in the background for real-time speed
+    FaceLogin.loadModels();
+
     // Face Login on login page
     const startFaceLoginBtn = document.getElementById('startFaceLogin');
     const faceLoginWebcam = document.getElementById('faceLoginWebcam');
     const faceLoginVideo = document.getElementById('faceLoginVideo');
-    const captureFaceLoginBtn = document.getElementById('captureFaceLogin');
+    const faceLoginCanvas = document.getElementById('faceLoginCanvas');
     const cancelFaceLoginBtn = document.getElementById('cancelFaceLogin');
     const faceLoginStatus = document.getElementById('faceLoginStatus');
+    
+    let loginScanInterval;
+    let isAuthenticating = false;
 
     if (startFaceLoginBtn) {
-        startFaceLoginBtn.addEventListener('click', async () => {
+        startFaceLoginBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
             startFaceLoginBtn.disabled = true;
-            startFaceLoginBtn.textContent = 'Loading models...';
+            startFaceLoginBtn.textContent = 'Hardware initializing...';
 
             const loaded = await FaceLogin.loadModels();
             if (!loaded) {
                 startFaceLoginBtn.disabled = false;
-                startFaceLoginBtn.textContent = '📷 Start Face Login';
-                alert('Failed to load face detection models.');
+                startFaceLoginBtn.textContent = ' Start Face Login';
+                alert('Failed to load face detection AI.');
                 return;
             }
 
             const started = await FaceLogin.startWebcam(faceLoginVideo);
             if (!started) {
                 startFaceLoginBtn.disabled = false;
-                startFaceLoginBtn.textContent = '📷 Start Face Login';
+                startFaceLoginBtn.textContent = ' Start Face Login';
                 return;
             }
 
             faceLoginWebcam.style.display = 'block';
             startFaceLoginBtn.style.display = 'none';
+            faceLoginStatus.textContent = 'Scanning face in real-time...';
+            faceLoginStatus.style.color = '#3b82f6';
+
+            startRealTimeScanner();
         });
     }
 
-    if (captureFaceLoginBtn) {
-        captureFaceLoginBtn.addEventListener('click', async () => {
-            faceLoginStatus.textContent = 'Detecting face...';
-            captureFaceLoginBtn.disabled = true;
+    function startRealTimeScanner() {
+        const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.6 });
 
-            const descriptor = await FaceLogin.detectFace(faceLoginVideo);
+        loginScanInterval = setInterval(async () => {
+             // Avoid evaluating new frames if we are actively verifying against backend
+            if (isAuthenticating || !FaceLogin.stream) return;
 
-            if (!descriptor) {
-                faceLoginStatus.textContent = '❌ No face detected. Please position your face clearly.';
-                captureFaceLoginBtn.disabled = false;
-                return;
+            const detection = await faceapi
+                .detectSingleFace(faceLoginVideo, options)
+                .withFaceLandmarks()
+                .withFaceDescriptor();
+
+            // Optional real-time bounding box feedback on canvas
+            if (faceLoginCanvas && !isAuthenticating) {
+                const displaySize = { width: faceLoginVideo.videoWidth || 320, height: faceLoginVideo.videoHeight || 240 };
+                // Ensure dimensions have positive non-zero values
+                if (displaySize.width > 0 && displaySize.height > 0) {
+                    faceapi.matchDimensions(faceLoginCanvas, displaySize);
+                    const ctx = faceLoginCanvas.getContext('2d');
+                    ctx.clearRect(0, 0, faceLoginCanvas.width, faceLoginCanvas.height);
+                    if (detection) {
+                        const resizedDetections = faceapi.resizeResults(detection, displaySize);
+                        faceapi.draw.drawDetections(faceLoginCanvas, resizedDetections);
+                    }
+                }
             }
 
-            faceLoginStatus.textContent = 'Authenticating...';
+            if (!detection) return; // Continuously scan without blocking
 
+            // Found a valid face, attempt fast background authentication
+            isAuthenticating = true;
+            faceLoginStatus.textContent = 'Match found! Verifying identity securely...';
+            faceLoginStatus.style.color = '#3b82f6';
+
+            const descriptor = Array.from(detection.descriptor);
             const result = await FaceLogin.authenticateFace(descriptor);
 
             if (result.success) {
-                faceLoginStatus.textContent = '✅ ' + result.message;
+                clearInterval(loginScanInterval);
+                faceLoginStatus.textContent = ' Access Granted! Redirecting...';
                 faceLoginStatus.style.color = '#10b981';
                 FaceLogin.stopWebcam();
-                // Redirect to dashboard
+                
+                if (faceLoginCanvas) {
+                    const displaySize = { width: faceLoginVideo.videoWidth, height: faceLoginVideo.videoHeight };
+                    if (displaySize.width > 0) {
+                        const resizedDetections = faceapi.resizeResults(detection, displaySize);
+                        const box = new faceapi.draw.DrawBox(resizedDetections.detection.box, { label: result.message, boxColor: '#10b981' });
+                        box.draw(faceLoginCanvas);
+                    }
+                }
+
                 setTimeout(() => {
-                    window.location.href = result.redirect;
-                }, 1000);
+                    window.location.href = result.redirect || '/NeuroMask/public/';
+                }, 800);
             } else {
-                faceLoginStatus.textContent = '❌ ' + result.error;
+                faceLoginStatus.textContent = `❌ ${result.error} - Scanning again...`;
                 faceLoginStatus.style.color = '#ef4444';
-                captureFaceLoginBtn.disabled = false;
+                
+                if (faceLoginCanvas) {
+                    const displaySize = { width: faceLoginVideo.videoWidth, height: faceLoginVideo.videoHeight };
+                    if (displaySize.width > 0) {
+                        const resizedDetections = faceapi.resizeResults(detection, displaySize);
+                        const box = new faceapi.draw.DrawBox(resizedDetections.detection.box, { label: 'Unknown', boxColor: '#ef4444' });
+                        box.draw(faceLoginCanvas);
+                    }
+                }
+
+                setTimeout(() => { 
+                    isAuthenticating = false; 
+                    faceLoginStatus.textContent = 'Scanning face in real-time...';
+                    faceLoginStatus.style.color = '#3b82f6';
+                }, 1000); 
             }
-        });
+        }, 150); // Frame capture & eval every 150ms 
     }
 
     if (cancelFaceLoginBtn) {
-        cancelFaceLoginBtn.addEventListener('click', () => {
+        cancelFaceLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            clearInterval(loginScanInterval);
+            isAuthenticating = false;
             FaceLogin.stopWebcam();
             faceLoginWebcam.style.display = 'none';
             startFaceLoginBtn.style.display = 'block';
             startFaceLoginBtn.disabled = false;
-            startFaceLoginBtn.textContent = '📷 Start Face Login';
+            startFaceLoginBtn.textContent = ' Start Face Login';
         });
     }
 
@@ -268,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await FaceLogin.enrollFace(descriptor);
 
             if (result.success) {
-                enrollStatus.textContent = '✅ ' + result.message;
+                enrollStatus.textContent = ' ' + result.message;
                 enrollStatus.style.color = '#10b981';
                 FaceLogin.stopWebcam();
                 setTimeout(() => location.reload(), 1500);

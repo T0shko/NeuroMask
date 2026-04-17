@@ -35,9 +35,9 @@ require_once __DIR__ . '/../templates/admin_header.php';
     <!-- Status Filter Tabs -->
     <div class="flex gap-1 mb-3">
         <a href="<?= url('admin/jobs.php') ?>" class="btn <?= empty($statusFilter) ? 'btn-primary' : 'btn-secondary' ?> btn-sm">All</a>
-        <a href="<?= url('admin/jobs.php?status=pending') ?>" class="btn <?= $statusFilter === 'pending' ? 'btn-primary' : 'btn-secondary' ?> btn-sm">⏳ Pending</a>
-        <a href="<?= url('admin/jobs.php?status=processing') ?>" class="btn <?= $statusFilter === 'processing' ? 'btn-primary' : 'btn-secondary' ?> btn-sm">🔄 Processing</a>
-        <a href="<?= url('admin/jobs.php?status=completed') ?>" class="btn <?= $statusFilter === 'completed' ? 'btn-primary' : 'btn-secondary' ?> btn-sm">✅ Completed</a>
+        <a href="<?= url('admin/jobs.php?status=pending') ?>" class="btn <?= $statusFilter === 'pending' ? 'btn-primary' : 'btn-secondary' ?> btn-sm"> Pending</a>
+        <a href="<?= url('admin/jobs.php?status=processing') ?>" class="btn <?= $statusFilter === 'processing' ? 'btn-primary' : 'btn-secondary' ?> btn-sm"> Processing</a>
+        <a href="<?= url('admin/jobs.php?status=completed') ?>" class="btn <?= $statusFilter === 'completed' ? 'btn-primary' : 'btn-secondary' ?> btn-sm"> Completed</a>
         <a href="<?= url('admin/jobs.php?status=failed') ?>" class="btn <?= $statusFilter === 'failed' ? 'btn-primary' : 'btn-secondary' ?> btn-sm">❌ Failed</a>
     </div>
 
@@ -100,7 +100,7 @@ require_once __DIR__ . '/../templates/admin_header.php';
                                     <input type="hidden" name="action" value="delete">
                                     <input type="hidden" name="job_id" value="<?= (int)$job['id'] ?>">
                                     <button type="submit" class="btn btn-sm btn-danger"
-                                            onclick="return confirm('Delete this job?')">🗑️</button>
+                                            onclick="return confirm('Delete this job?')"></button>
                                 </form>
                             </td>
                         </tr>

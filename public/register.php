@@ -30,14 +30,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Register – <?= APP_NAME ?></title>
     <meta name="description" content="Create your Neuromax account and start transforming faces with AI.">
     <link rel="stylesheet" href="<?= assetUrl('css/style.css') ?>">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔷</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'></text></svg>">
 </head>
 <body>
 <div class="auth-page">
     <div class="auth-card">
         <div class="auth-header">
             <div class="auth-logo">
-                <div class="logo-icon">🔷</div>
+                <div class="logo-icon"></div>
                 <span class="logo-text"><?= APP_NAME ?></span>
             </div>
             <h2>Create Account</h2>
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <button type="submit" class="btn btn-primary btn-block btn-lg">
-                🚀 Create Account
+                 Create Account
             </button>
         </form>
 

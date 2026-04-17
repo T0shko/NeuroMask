@@ -24,27 +24,27 @@ require_once __DIR__ . '/../templates/admin_header.php';
     <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-icon blue">👥</div>
+            <div class="stat-icon blue"><i data-lucide="users"></i></div>
             <div class="stat-value"><?= (int)$stats['total_users'] ?></div>
             <div class="stat-label">Total Users</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon purple">⚡</div>
+            <div class="stat-icon purple"><i data-lucide="zap"></i></div>
             <div class="stat-value"><?= (int)($stats['job_stats']['total'] ?? 0) ?></div>
             <div class="stat-label">Total Jobs</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon green">✅</div>
+            <div class="stat-icon green"><i data-lucide="check-circle"></i></div>
             <div class="stat-value"><?= (int)($stats['job_stats']['completed'] ?? 0) ?></div>
             <div class="stat-label">Completed</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon yellow">⏳</div>
+            <div class="stat-icon yellow"><i data-lucide="clock"></i></div>
             <div class="stat-value"><?= (int)($stats['job_stats']['pending'] ?? 0) ?></div>
             <div class="stat-label">Pending</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon cyan">✉️</div>
+            <div class="stat-icon cyan"><i data-lucide="mail"></i></div>
             <div class="stat-value"><?= (int)$stats['unread_msgs'] ?></div>
             <div class="stat-label">Unread Messages</div>
         </div>
@@ -74,9 +74,9 @@ require_once __DIR__ . '/../templates/admin_header.php';
                 <h3 class="card-title">Quick Actions</h3>
             </div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
-                <a href="<?= url('admin/users.php') ?>" class="btn btn-secondary">👥 Manage Users</a>
-                <a href="<?= url('admin/jobs.php') ?>" class="btn btn-secondary">⚡ Manage Jobs</a>
-                <a href="<?= url('admin/subscriptions.php') ?>" class="btn btn-secondary">💎 Manage Plans</a>
+                <a href="<?= url('admin/users.php') ?>" class="btn btn-secondary"><i data-lucide="users" style="width: 16px;"></i> Manage Users</a>
+                <a href="<?= url('admin/jobs.php') ?>" class="btn btn-secondary"><i data-lucide="zap" style="width: 16px;"></i> Manage Jobs</a>
+                <a href="<?= url('admin/subscriptions.php') ?>" class="btn btn-secondary"><i data-lucide="gem" style="width: 16px;"></i> Manage Plans</a>
             </div>
         </div>
     </div>

@@ -28,14 +28,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
     <title>Login – <?= APP_NAME ?></title>
     <meta name="description" content="Log in to your Neuromax account.">
     <link rel="stylesheet" href="<?= assetUrl('css/style.css') ?>">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔷</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'></text></svg>">
 </head>
 <body>
 <div class="auth-page">
     <div class="auth-card">
         <div class="auth-header">
             <div class="auth-logo">
-                <div class="logo-icon">🔷</div>
+                <div class="logo-icon"></div>
                 <span class="logo-text"><?= APP_NAME ?></span>
             </div>
             <h2>Welcome Back</h2>
@@ -79,19 +79,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['email'])) {
         <div class="face-login-area" id="faceLoginArea">
             <span class="face-icon">🧑‍💻</span>
             <p>Log in with Face Recognition</p>
-            <button class="btn btn-outline btn-block" id="startFaceLogin">
-                📷 Start Face Login
+            <button type="button" class="btn btn-outline btn-block" id="startFaceLogin">
+                 Real-time Face Login
             </button>
             <div id="faceLoginWebcam" style="display: none; margin-top: 16px;">
-                <div class="webcam-container">
-                    <video id="faceLoginVideo" autoplay muted playsinline></video>
-                    <canvas id="faceLoginCanvas"></canvas>
+                <div class="webcam-container" style="position: relative;">
+                    <video id="faceLoginVideo" autoplay muted playsinline style="width: 100%; border-radius: 8px;"></video>
+                    <canvas id="faceLoginCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;"></canvas>
+                    <div id="scanOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 2px solid rgba(59,130,246,0.3); z-index: 5; pointer-events: none; border-radius: 8px; box-shadow: inset 0 0 20px rgba(59,130,246,0.15);"></div>
                 </div>
-                <div class="webcam-controls mt-2">
-                    <button class="btn btn-primary" id="captureFaceLogin">📸 Capture & Login</button>
-                    <button class="btn btn-secondary" id="cancelFaceLogin">Cancel</button>
+                <p class="text-sm font-medium mt-3" id="faceLoginStatus" style="transition: color 0.3s; min-height: 20px; text-align: center;">Initializing scanner...</p>
+                <div class="webcam-controls mt-3" style="display: flex; justify-content: center;">
+                    <button type="button" class="btn btn-secondary btn-sm" id="cancelFaceLogin" style="padding: 6px 16px;">❌ Cancel Scanner</button>
                 </div>
-                <p class="text-sm text-muted mt-1" id="faceLoginStatus">Position your face in the camera...</p>
             </div>
         </div>
 

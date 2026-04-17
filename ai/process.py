@@ -1,26 +1,16 @@
-"""
-Neuromax – AI Face Swap Engine (Dual-Mode: Fast & HQ Diffusion)
-===============================================================
-
-Mode 1 [FAST]: InsightFace Matrix Swap + GFPGAN (Sub 5 seconds)
-Mode 2 [HQ]: Generative Diffusers IP-Adapter Face Inpainting (Ultimate 1:1 Redraw)
-
-Usage:
-    python process.py <source_path> <target_path> <output_path> [--mode hq|fast] [--debug]
-"""
-
 import sys
 import os
 
-# Reroute massive tensor downloads to the D: drive immediately to stop C: exhaustion
-os.environ["HF_HOME"] = r"D:\NeuroMaskAI\hf_cache"
-os.environ["INSIGHTFACE_HOME"] = r"D:\NeuroMaskAI\insightface"
+os.environ["PYTHONIOENCODING"] = "utf-8"
+os.environ["TQDM_DISABLE"] = "1"
+os.environ["HF_HOME"] = r"E:\NeuroMaskAI\hf_cache"
+os.environ["INSIGHTFACE_HOME"] = r"E:\NeuroMaskAI\insightface"
 
-import time
+import cv2
+import numpy as np
 import argparse
 import traceback
-import numpy as np
-import cv2
+import time
 
 # --- MONKEY PATCH FOR BASICSR ON NEW PYTORCH ---
 try:
@@ -31,11 +21,6 @@ except ImportError:
         sys.modules['torchvision.transforms.functional_tensor'] = tv_f
     except ImportError:
         pass
-# -----------------------------------------------
-
-# ============================================================
-# CONSTANTS & GLOBALS
-# ============================================================
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SWAPPER_MODEL_NAME = "inswapper_128.onnx"
@@ -43,305 +28,261 @@ GFPGAN_MODEL_NAME = "GFPGANv1.4.pth"
 REALESRGAN_MODEL_NAME = "RealESRGAN_x2plus.pth"
 FACE_ANALYSIS_MODEL = "buffalo_l"
 DET_SIZE = (640, 640)
-PROVIDERS = ["CUDAExecutionProvider"]
+PROVIDERS = ["CUDAExecutionProvider", "CPUExecutionProvider"]
 OUTPUT_QUALITY = 95
 MAX_IMAGE_DIM = 2048
 
 DEBUG_MODE = False
 
-# ============================================================
-# LOGGING
-# ============================================================
+def log_info(msg: str) -> None:
+    print(f"[INFO] {msg}", flush=True)
 
-def log_info(message: str) -> None:
-    print(f"[INFO] {message}", flush=True)
+def log_warning(msg: str) -> None:
+    print(f"[WARNING] {msg}", flush=True)
 
-def log_error(message: str) -> None:
-    print(f"[ERROR] {message}", file=sys.stderr, flush=True)
-
-def log_warning(message: str) -> None:
-    print(f"[WARNING] {message}", flush=True)
-
-# ============================================================
-# IMAGE I/O
-# ============================================================
+def log_error(msg: str) -> None:
+    print(f"[ERROR] {msg}", file=sys.stderr, flush=True)
 
 def load_image(filepath: str, label: str) -> np.ndarray:
     if not os.path.isfile(filepath):
-        raise FileNotFoundError(f"{label.capitalize()} file not found: {filepath}")
-    image = cv2.imread(filepath)
-    if image is None:
-        raise ValueError(f"Cannot decode {label} image: {filepath}.")
-
-    h, w = image.shape[:2]
+        raise FileNotFoundError(f"{label} file not found: {filepath}")
+    img = cv2.imread(filepath)
+    if img is None:
+        raise ValueError(f"Cannot decode {label} image: {filepath}")
+    h, w = img.shape[:2]
     if max(h, w) > MAX_IMAGE_DIM:
         scale = MAX_IMAGE_DIM / max(h, w)
-        image = cv2.resize(image, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
-    return image
+        img = cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+    return img
 
-def save_image(image: np.ndarray, filepath: str) -> None:
-    output_dir = os.path.dirname(os.path.abspath(filepath))
-    if output_dir and not os.path.isdir(output_dir):
-        os.makedirs(output_dir, exist_ok=True)
-    success = cv2.imwrite(filepath, image, [cv2.IMWRITE_JPEG_QUALITY, OUTPUT_QUALITY])
-    if not success:
-        raise IOError("Failed to push final frame to disk.")
-
-# ============================================================
-# UTILITIES
-# ============================================================
-
-def get_face_inpaint_mask(image_shape, face, margin_ratio=0.5):
-    """
-    Creates a dilated binary mask covering the face and immediate jaw boundaries
-    for Generative Inpainting.
-    """
-    mask = np.zeros(image_shape[:2], dtype=np.uint8)
-    bbox = face.bbox.astype(int)
-    w, h = bbox[2] - bbox[0], bbox[3] - bbox[1]
-
-    margin_w = int(w * margin_ratio)
-    margin_h = int(h * margin_ratio)
-
-    x1 = max(0, bbox[0] - margin_w)
-    y1 = max(0, bbox[1] - margin_h)
-    x2 = min(image_shape[1], bbox[2] + margin_w)
-    y2 = min(image_shape[0], bbox[3] + margin_h)
-
-    # Draw soft convex hull to prevent boxing artifacts
-    if hasattr(face, 'landmark_2d_106') and face.landmark_2d_106 is not None:
-        kps = face.landmark_2d_106.astype(np.int32)
-        hull = cv2.convexHull(kps)
-        cv2.fillConvexPoly(mask, hull, 255)
-        # Dilate mask aggressively to cover jawline for diffusion
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (margin_w, margin_h))
-        mask = cv2.dilate(mask, kernel, iterations=1)
-    else:
-        cv2.ellipse(mask, (int((x1+x2)/2), int((y1+y2)/2)), (int(w*1.2), int(h*1.2)), 0, 0, 360, 255, -1)
-
-    return mask
-
-def match_colors_soft(source_img: np.ndarray, target_img: np.ndarray, mask: np.ndarray) -> np.ndarray:
-    mask_soft = cv2.GaussianBlur(mask, (31, 31), 0).astype(np.float32) / 255.0
-    mask_soft = np.repeat(mask_soft[:, :, np.newaxis], 3, axis=2)
-    return (source_img * mask_soft + target_img * (1 - mask_soft)).astype(np.uint8)
-
-# ============================================================
-# CORE ENGINE
-# ============================================================
+def save_image(img: np.ndarray, filepath: str) -> None:
+    out_dir = os.path.dirname(os.path.abspath(filepath))
+    os.makedirs(out_dir, exist_ok=True)
+    ok = cv2.imwrite(filepath, img, [cv2.IMWRITE_JPEG_QUALITY, OUTPUT_QUALITY])
+    if not ok:
+        raise IOError(f"Failed to write output image: {filepath}")
 
 class NeuroSwapEngine:
     def __init__(self):
-        self._face_analyzer = None
-        self._swapper = None
-        self._gfpgan = None
-
-        # Diffusion Assets
-        self.diffusion_pipe = None
-
-    def initialize_insightface(self):
+        self.face_analyzer = None
+        self.swapper = None
+        self.gfpgan = None
+        self.realesrgan = None
+        self.codeformer = None
+        
+    def initialize_models(self) -> None:
         import insightface
-        from insightface.app import FaceAnalysis
+        log_info(f"Initializing InsightFace ({FACE_ANALYSIS_MODEL})...")
+        self.face_analyzer = insightface.app.FaceAnalysis(name=FACE_ANALYSIS_MODEL, providers=PROVIDERS)
+        self.face_analyzer.prepare(ctx_id=0, det_size=DET_SIZE)
 
-        log_info(f"Waking up InsightFace Analysis ({FACE_ANALYSIS_MODEL}) on {PROVIDERS[0]}")
-        self._face_analyzer = FaceAnalysis(name=FACE_ANALYSIS_MODEL, providers=PROVIDERS)
-        self._face_analyzer.prepare(ctx_id=0, det_size=DET_SIZE)
-
-    def load_fast_models(self):
-        import insightface
         model_path = os.path.join(SCRIPT_DIR, SWAPPER_MODEL_NAME)
         if not os.path.isfile(model_path):
-            raise FileNotFoundError(f"Missing {SWAPPER_MODEL_NAME}")
-        self._swapper = insightface.model_zoo.get_model(model_path, providers=PROVIDERS)
-
-        # GFPGAN
+            raise FileNotFoundError(f"Missing swapper model: {model_path}")
+        self.swapper = insightface.model_zoo.get_model(model_path, providers=PROVIDERS)
+        
+        # Load GFPGAN (for Fast Mode)
         try:
             from gfpgan import GFPGANer
-            gfpgan_path = os.path.join(SCRIPT_DIR, GFPGAN_MODEL_NAME)
-            self._gfpgan = GFPGANer(model_path=gfpgan_path, upscale=1, arch='clean', channel_multiplier=2)
+            gfp_path = os.path.join(SCRIPT_DIR, GFPGAN_MODEL_NAME)
+            if os.path.isfile(gfp_path):
+                self.gfpgan = GFPGANer(model_path=gfp_path, upscale=1, arch='clean', channel_multiplier=2)
+                log_info("GFPGAN loaded (Fast Mode).")
         except Exception as e:
-            log_error(f"GFPGAN instantiation fault: {e}")
+            log_warning(f"GFPGAN could not be loaded: {e}")
 
-    def load_diffusion_models(self):
-        import torch
-        from diffusers import StableDiffusionControlNetInpaintPipeline, ControlNetModel
-
-        log_info("Deploying High-Quality Diffusion Transformers (10GB+ VRAM architecture optimized for 8GB via Xformers)...")
-        # Ensure we construct the inpainting controlnet perfectly.
-        controlnet = ControlNetModel.from_pretrained(
-            "lllyasviel/control_v11p_sd15_inpaint",
-            torch_dtype=torch.float16
-        )
-
-        pipe = StableDiffusionControlNetInpaintPipeline.from_pretrained(
-            "SG161222/Realistic_Vision_V5.1_noVAE",
-            controlnet=controlnet,
-            torch_dtype=torch.float16,
-            safety_checker=None
-        ).to("cuda")
-
-        log_info("Mounting IP-Adapter-FaceID Projections...")
-        # FaceID requires no image encoder natively because it feeds off raw 512 dim ArcFace values.
-        pipe.load_ip_adapter(
-            "h94/IP-Adapter-FaceID",
-            subfolder="",
-            weight_name="ip-adapter-faceid_sd15.bin",
-            image_encoder_folder=None
-        )
-
-        # Optimize memory usage for 8GB RTX 3070 to avoid CUDA OOM bounds
+        # Load RealESRGAN
+        self.realesrgan = None
+        self.realesrgan_hq = None
         try:
-            pipe.enable_xformers_memory_efficient_attention()
-            log_info("Xformers Tensor Cores engaged.")
-        except Exception:
-            pipe.enable_attention_slicing()
-            log_warning("Xformers missing. Falling back to Sliced Attention (Slower execution).")
-
-        self.diffusion_pipe = pipe
-
-        # We also need GFPGAN to sharpen up the generated pores natively
-        try:
-            from gfpgan import GFPGANer
-            gfpgan_path = os.path.join(SCRIPT_DIR, GFPGAN_MODEL_NAME)
-            if os.path.isfile(gfpgan_path):
-                self._gfpgan = GFPGANer(model_path=gfpgan_path, upscale=1, arch='clean', channel_multiplier=2)
-        except:
-            pass
+            from realesrgan import RealESRGANer
+            from basicsr.archs.rrdbnet_arch import RRDBNet
+            
+            # Standard 2x Upscaler
+            realesrgan_path = os.path.join(SCRIPT_DIR, REALESRGAN_MODEL_NAME)
+            if os.path.isfile(realesrgan_path):
+                model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=2)
+                self.realesrgan = RealESRGANer(scale=2, model_path=realesrgan_path, model=model, tile=400, tile_pad=10, pre_pad=0, half=True)
+                log_info("RealESRGAN x2 loaded.")
+                
+            # HQ 4x Upscaler
+            realesrgan_hq_path = os.path.join(SCRIPT_DIR, "RealESRGAN_x4plus.pth")
+            if os.path.isfile(realesrgan_hq_path):
+                model_hq = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
+                self.realesrgan_hq = RealESRGANer(scale=4, model_path=realesrgan_hq_path, model=model_hq, tile=400, tile_pad=10, pre_pad=0, half=True)
+                log_info("RealESRGAN x4 (HQ) loaded.")
+        except Exception as e:
+            log_warning(f"RealESRGAN could not be loaded: {e}")
 
     def detect_face(self, image: np.ndarray, label: str):
-        faces = self._face_analyzer.get(image)
+        faces = self.face_analyzer.get(image)
         if not faces:
             raise ValueError(f"No face detected in {label} image.")
-        return sorted(faces, key=lambda f: (f.bbox[2]-f.bbox[0])*(f.bbox[3]-f.bbox[1]), reverse=True)[0]
+        return max(faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]))
 
-    def mode_fast_process(self, source_img: np.ndarray, target_img: np.ndarray) -> np.ndarray:
+    def process_fast(self, source_img: np.ndarray, target_img: np.ndarray) -> np.ndarray:
+        log_info("Executing FAST Mode...")
         source_face = self.detect_face(source_img, "source")
         target_face = self.detect_face(target_img, "target")
 
-        log_info("Executing Inswapper Multi-Pass routine...")
-        swap_pass = self._swapper.get(target_img.copy(), target_face, source_face, paste_back=True)
-        inter_face = self.detect_face(swap_pass, "intermediate")
-        swap_pass = self._swapper.get(swap_pass, inter_face, source_face, paste_back=True)
+        log_info("Swapping face...")
+        result = self.swapper.get(target_img.copy(), target_face, source_face, paste_back=True)
 
-        if self._gfpgan:
-             log_info("Capping GFPGAN to preserve underlying structure mapping...")
-             _, _, enhanced_img = self._gfpgan.enhance(swap_pass, has_aligned=False, only_center_face=False, paste_back=True, weight=0.6)
-             if enhanced_img is not None:
-                 swap_pass = enhanced_img
-        return swap_pass
+        if self.gfpgan:
+            log_info("Enhancing with GFPGAN...")
+            _, _, result = self.gfpgan.enhance(result, has_aligned=False, only_center_face=False, paste_back=True)
 
-    def mode_hq_diffusion_process(self, source_img: np.ndarray, target_img: np.ndarray) -> np.ndarray:
+        if self.realesrgan:
+            log_info("Upscaling background with RealESRGAN...")
+            result, _ = self.realesrgan.enhance(result, outscale=2)
+
+        return result
+
+    def _parse_face(self, parse_model, face_crop, device):
         import torch
-        from PIL import Image
+        face_rgb = cv2.cvtColor(face_crop, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
+        face_rgb = (face_rgb - 0.5) / 0.5
+        face_tensor = torch.from_numpy(face_rgb).permute(2, 0, 1).unsqueeze(0).to(device)
+        with torch.no_grad():
+            out = parse_model(face_tensor)[0]
+        return out.argmax(dim=1).squeeze().cpu().numpy()
 
+    def process_hq(self, source_img: np.ndarray, target_img: np.ndarray) -> np.ndarray:
+        log_info("Executing HQ Mode...")
         source_face = self.detect_face(source_img, "source")
         target_face = self.detect_face(target_img, "target")
 
-        # ── 1. Create Diffusers Environment State ──
-        log_info("Entering Diffusion Canvas... Preparing geometry tensors.")
-        mask_np = get_face_inpaint_mask(target_img.shape, target_face, margin_ratio=0.45)
+        log_info("Pass 1: Swapping face...")
+        result = self.swapper.get(target_img.copy(), target_face, source_face, paste_back=True)
 
-        # Convert states to PIL
-        init_image = Image.fromarray(cv2.cvtColor(target_img, cv2.COLOR_BGR2RGB))
-        mask_image = Image.fromarray(mask_np)
+        log_info("Pass 2: Source hair/beard/brow transfer via face parsing...")
+        import torch
+        from facexlib.utils.face_restoration_helper import FaceRestoreHelper
+        from skimage.exposure import match_histograms
 
-        # Diffusers ControlNet Inpaint requires the control image to be structurally formatted with the mask.
-        control_image = Image.fromarray(cv2.cvtColor(target_img, cv2.COLOR_BGR2RGB))
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        # Wider crop captures hair (top) and beard (bottom) — safe because parse mask limits transfer
+        CROP_RATIO = (1.8, 1.4)
 
-        # ── 2. Structural Identity Extraction ──
-        log_info("Extracting pure 512-Dim Identity Vector map...")
-        # IP-Adapter requires shape (1, 1, 512) for face embeds
-        face_emb = source_face.normed_embedding
-        face_emb_torch = torch.tensor(face_emb, dtype=torch.float16).unsqueeze(0).unsqueeze(0)
+        source_helper = FaceRestoreHelper(upscale_factor=1, face_size=512, crop_ratio=CROP_RATIO, det_model='retinaface_resnet50', save_ext='png', use_parse=True, device=device)
+        source_helper.read_image(source_img)
+        source_helper.get_face_landmarks_5(only_center_face=True, eye_dist_threshold=5)
+        source_helper.align_warp_face()
 
-        # ── 3. High-Quality Diffusion Hallucination ──
-        log_info(f"Redrawing Identity 1:1 using Checkpoint Integration... Rendering...")
-        torch.cuda.empty_cache() # Clear 3070 VRAM bounds
+        target_helper = FaceRestoreHelper(upscale_factor=1, face_size=512, crop_ratio=CROP_RATIO, det_model='retinaface_resnet50', save_ext='png', use_parse=False, device=device)
+        target_helper.read_image(target_img)
+        target_helper.get_face_landmarks_5(only_center_face=True, eye_dist_threshold=5)
+        target_helper.align_warp_face()
 
-        generator = torch.Generator(device="cuda").manual_seed(42) # Consistent outputs
+        face_helper = FaceRestoreHelper(upscale_factor=1, face_size=512, crop_ratio=CROP_RATIO, det_model='retinaface_resnet50', save_ext='png', use_parse=True, device=device)
+        face_helper.read_image(result)
+        face_helper.get_face_landmarks_5(only_center_face=False, eye_dist_threshold=5)
+        face_helper.align_warp_face()
 
-        # The prompt forces photorealistic pores and identical human flesh reconstruction
-        prompt = "photorealistic face, raw photograph, 8k resolution, ultra detailed pores, sharp focus, perfectly illuminated skin, cinematic lighting"
-        neg_prompt = "cartoon, 3d, artificial, plastic, smooth skin, doll, deformed, malformed skull, weird lighting, extra fingers, blurry, low res, oversaturated"
+        if source_helper.cropped_faces and face_helper.cropped_faces:
+            source_crop = source_helper.cropped_faces[0]
+            target_crop_ref = target_helper.cropped_faces[0] if target_helper.cropped_faces else None
 
-        # Execution loop natively commands SD1.5 to overwrite the inside of the mask natively
-        # using IP-Adapter embeds.
-        diffused_out = self.diffusion_pipe(
-            prompt=prompt,
-            negative_prompt=neg_prompt,
-            image=init_image,
-            mask_image=mask_image,
-            control_image=control_image,
-            ip_adapter_image_embeds=[face_emb_torch], # Target Identity Injection
-            num_inference_steps=30,  # Optimal speed/quality on RTX cards
-            guidance_scale=6.5,      # High adherence to identity
-            generator=generator,
-            strength=0.95            # How much to deviate from original pixels (95% redrawn)
-        ).images[0]
+            # BiSeNet labels: 1=skin, 2=lbrow, 3=rbrow, 10=nose, 17=hair
+            source_parse = self._parse_face(source_helper.face_parse, source_crop, device)
+            hair = (source_parse == 17).astype(np.float32)
+            brows = ((source_parse == 2) | (source_parse == 3)).astype(np.float32)
+            # Beard zone: skin pixels in the lower portion of the aligned face (below mouth ≈ y>380/512)
+            skin = (source_parse == 1).astype(np.float32)
+            beard = np.zeros_like(skin)
+            beard[380:, :] = skin[380:, :]
 
-        diffused_bgr = cv2.cvtColor(np.array(diffused_out), cv2.COLOR_RGB2BGR)
+            transfer_mask = np.clip(hair + brows + beard, 0, 1)
+            transfer_mask = cv2.GaussianBlur(transfer_mask, (15, 15), 0)
 
-        # ── 4. Generative Compositing ──
-        log_info("Generative pass complete. Passing to AI refiner...")
+            # Tone-match source to target's lighting distribution
+            tone_ref = target_crop_ref if target_crop_ref is not None else face_helper.cropped_faces[0]
+            source_matched = np.clip(match_histograms(source_crop, tone_ref, channel_axis=-1), 0, 255).astype(np.uint8)
 
-        # We natively rely on the Diffusers VAE to stitch the Deepfake border seamlessly.
-        # No manual alpha blurring to prevent the "Halo" effect.
-        final_merged = diffused_bgr
+            for idx, ai_crop in enumerate(face_helper.cropped_faces):
+                mask_3c = transfer_mask[..., None]
+                composite = source_matched.astype(np.float32) * mask_3c + ai_crop.astype(np.float32) * (1 - mask_3c)
+                face_helper.add_restored_face(np.clip(composite, 0, 255).astype(np.uint8))
 
-        if self._gfpgan:
-            log_info("Final pass: Generative pixel polishing via GAN...")
-            _, _, enhanced_img = self._gfpgan.enhance(final_merged, has_aligned=False, only_center_face=False, paste_back=True, weight=0.65)
-            if enhanced_img is not None:
-                final_merged = enhanced_img
+            face_helper.get_inverse_affine(None)
+            result = face_helper.paste_faces_to_input_image(save_path=None, upsample_img=result)
 
-        return final_merged
+        # Light GFPGAN at 0.3 — cleans boundary seams without regenerating hair/beard
+        if self.gfpgan:
+            log_info("Pass 3: GFPGAN seam cleanup (weight=0.3)...")
+            try:
+                _, _, result = self.gfpgan.enhance(result, has_aligned=False, only_center_face=False, paste_back=True, weight=0.3)
+            except TypeError:
+                _, _, result = self.gfpgan.enhance(result, has_aligned=False, only_center_face=False, paste_back=True)
 
+        # Pass 4: Brightness match — force face region to match target's tonal distribution
+        log_info("Pass 4: Face brightness match...")
+        bbox = target_face.bbox.astype(int)
+        pad_x = int((bbox[2] - bbox[0]) * 0.4)
+        pad_y_top = int((bbox[3] - bbox[1]) * 0.6)
+        pad_y_bot = int((bbox[3] - bbox[1]) * 0.4)
+        x1 = max(0, bbox[0] - pad_x)
+        y1 = max(0, bbox[1] - pad_y_top)
+        x2 = min(result.shape[1], bbox[2] + pad_x)
+        y2 = min(result.shape[0], bbox[3] + pad_y_bot)
+        if x2 > x1 and y2 > y1:
+            result_roi = result[y1:y2, x1:x2].copy()
+            target_roi = target_img[y1:y2, x1:x2]
+            matched_roi = np.clip(match_histograms(result_roi, target_roi, channel_axis=-1), 0, 255).astype(np.uint8)
+            rh, rw = matched_roi.shape[:2]
+            fy = max(8, rh // 6)
+            fx = max(8, rw // 6)
+            mask = np.ones((rh, rw), dtype=np.float32)
+            ramp_y = np.linspace(0, 1, fy)
+            ramp_x = np.linspace(0, 1, fx)
+            mask[:fy, :] *= ramp_y[:, None]
+            mask[-fy:, :] *= ramp_y[::-1][:, None]
+            mask[:, :fx] *= ramp_x[None, :]
+            mask[:, -fx:] *= ramp_x[::-1][None, :]
+            mask = cv2.GaussianBlur(mask, (31, 31), 0)[..., None]
+            blended = matched_roi.astype(np.float32) * mask + result_roi.astype(np.float32) * (1 - mask)
+            result[y1:y2, x1:x2] = np.clip(blended, 0, 255).astype(np.uint8)
 
-def process(source_path: str, target_path: str, output_path: str, mode: str) -> None:
-    engine = NeuroSwapEngine()
-    engine.initialize_insightface()
+        if self.realesrgan_hq:
+            log_info("Pass 5: Upscaling with RealESRGAN x4...")
+            result, _ = self.realesrgan_hq.enhance(result, outscale=4)
+        elif self.realesrgan:
+            log_info("Pass 5: Upscaling with RealESRGAN x2 (Fallback)...")
+            result, _ = self.realesrgan.enhance(result, outscale=2)
 
-    if mode == 'hq':
-        # Fallback to fast mode safely if the heavy models fail to mount
-        try:
-            engine.load_diffusion_models()
-        except ImportError as e:
-            log_error(f"Diffusion pip modules completely missing. Please heavily run install_dependencies.bat. {e}. Falling back to FAST mode.")
-            mode = 'fast'
-        except Exception as e:
-            log_error(f"Diffusion HQ VRAM architecture failed. VRAM Overflow? Exception: {e}. Falling back to FAST mode.")
-            mode = 'fast'
+        log_info("Pass 6: Sharpening...")
+        blur = cv2.GaussianBlur(result, (0, 0), 3)
+        result = cv2.addWeighted(result, 1.8, blur, -0.8, 0)
 
-    if mode == 'fast':
-        engine.load_fast_models()
-
-    source_img = load_image(source_path, "source")
-    target_img = load_image(target_path, "target")
-
-    start_time = time.time()
-    if mode == 'hq':
-        final_img = engine.mode_hq_diffusion_process(source_img, target_img)
-    else:
-        final_img = engine.mode_fast_process(source_img, target_img)
-
-    log_info(f"Engine execution ({mode.upper()}) completed in {time.time() - start_time:.2f} seconds.")
-    save_image(final_img, output_path)
+        return result
 
 def main() -> int:
-    global DEBUG_MODE
-    parser = argparse.ArgumentParser()
-    parser.add_argument("source_path")
-    parser.add_argument("target_path")
-    parser.add_argument("output_path")
-    parser.add_argument("--mode", choices=['fast', 'hq'], default='hq', help="Select generative pipeline intensity.")
-    parser.add_argument("--debug", action="store_true")
-
+    parser = argparse.ArgumentParser(description="NeuroMask Face Swap Engine")
+    parser.add_argument("source_path", help="Source face image")
+    parser.add_argument("target_path", help="Target image (body/scene)")
+    parser.add_argument("output_path", help="Output file path")
+    parser.add_argument("--mode", help="Processing mode: fast or hq", default="fast")
+    parser.add_argument("--debug", action="store_true", help="Save intermediate debug images")
     args = parser.parse_args()
-    if args.debug:
-        DEBUG_MODE = True
+
+    global DEBUG_MODE
+    DEBUG_MODE = args.debug
 
     try:
-        process(args.source_path, args.target_path, args.output_path, args.mode)
+        engine = NeuroSwapEngine()
+        engine.initialize_models()
+
+        source_img = load_image(args.source_path, "source")
+        target_img = load_image(args.target_path, "target")
+
+        t0 = time.time()
+        if args.mode.lower() == "hq":
+            final_img = engine.process_hq(source_img, target_img)
+        else:
+            final_img = engine.process_fast(source_img, target_img)
+        
+        log_info(f"Total execution: {time.time() - t0:.2f}s")
+        save_image(final_img, args.output_path)
         return 0
     except Exception as e:
         log_error(str(e))

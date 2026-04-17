@@ -37,7 +37,7 @@ require_once __DIR__ . '/../templates/header.php';
 
     <div class="flex-between mb-3">
         <div>
-            <a href="<?= publicUrl('upload.php') ?>" class="btn btn-primary">🔄 New Face Swap</a>
+            <a href="<?= publicUrl('upload.php') ?>" class="btn btn-primary"><i data-lucide="refresh-cw" style="width:16px;"></i> New Face Swap</a>
         </div>
         <div class="text-sm text-muted">
             <?= count($jobs) ?> total job<?= count($jobs) !== 1 ? 's' : '' ?>
@@ -47,7 +47,7 @@ require_once __DIR__ . '/../templates/header.php';
     <?php if (empty($jobs)): ?>
         <div class="card">
             <div class="empty-state">
-                <span class="empty-icon">📭</span>
+                <span class="empty-icon"><i data-lucide="inbox" style="width:48px;height:48px;"></i></span>
                 <h3>No jobs yet</h3>
                 <p>Upload your first face swap to get started!</p>
                 <a href="<?= publicUrl('upload.php') ?>" class="btn btn-primary">Start Face Swap</a>
@@ -84,14 +84,14 @@ require_once __DIR__ . '/../templates/header.php';
                             <td>
                                 <?php if ($job['status'] === 'completed' && $job['result_path']): ?>
                                     <button class="btn btn-sm btn-outline" onclick="openResult(<?= (int)$job['id'] ?>, '<?= e($job['source_path']) ?>', '<?= e($job['file_path']) ?>', '<?= e($job['result_path']) ?>')">
-                                        👁️ View
+                                        <i data-lucide="eye" style="width:16px;"></i> View
                                     </button>
                                     <a href="<?= assetUrl('results/' . e($job['result_path'])) ?>" download class="btn btn-sm btn-secondary">
-                                        ⬇️
+                                        <i data-lucide="download" style="width:16px;"></i>
                                     </a>
                                 <?php elseif ($job['status'] === 'failed'): ?>
                                     <span class="text-sm" style="color: var(--accent-red);" title="<?= e($job['error_msg'] ?? 'Unknown error') ?>">
-                                        ⚠️ <?= e(truncate($job['error_msg'] ?? 'Error', 30)) ?>
+                                        <i data-lucide="alert-triangle" style="width:14px;vertical-align:middle;"></i> <?= e(truncate($job['error_msg'] ?? 'Error', 30)) ?>
                                     </span>
                                 <?php elseif ($job['status'] === 'processing'): ?>
                                     <span class="spinner spinner-sm"></span>
@@ -127,12 +127,12 @@ require_once __DIR__ . '/../templates/header.php';
                 <img src="" id="modalTarget" alt="Target" style="width: 100%; border-radius: 10px; border: 1px solid var(--border-color);">
             </div>
             <div>
-                <div class="label" style="font-size: 12px; color: var(--accent-green); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; font-weight: 600;">✨ Result</div>
+                <div class="label" style="font-size: 12px; color: var(--accent-green); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; font-weight: 600;"><i data-lucide="sparkles" style="width:14px;vertical-align:middle;"></i> Result</div>
                 <img src="" id="modalResult" alt="Result" style="width: 100%; border-radius: 10px; border: 2px solid var(--accent-green);">
             </div>
         </div>
         <div class="text-center mt-2">
-            <a href="" id="modalDownload" download class="btn btn-primary">⬇️ Download Result</a>
+            <a href="" id="modalDownload" download class="btn btn-primary"><i data-lucide="download" style="width:16px;"></i> Download Result</a>
         </div>
     </div>
 </div>

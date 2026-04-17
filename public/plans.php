@@ -27,7 +27,7 @@ $pageTitle = 'Plans';
 $pageDescription = 'Choose your subscription plan';
 require_once __DIR__ . '/../templates/header.php';
 
-$planIcons = ['🆓', '🚀', '👑'];
+$planIcons = ['<i data-lucide="gift"></i>', '<i data-lucide="rocket"></i>', '<i data-lucide="crown"></i>'];
 $planColors = [
     'rgba(107, 114, 128, 0.15)',
     'rgba(59, 130, 246, 0.15)',
@@ -56,7 +56,7 @@ $planColors = [
         ?>
         <div class="pricing-card <?= $isFeatured ? 'featured' : '' ?> <?= $isCurrent ? 'current' : '' ?>">
             <div class="plan-icon" style="background: <?= $planColors[$index] ?? '' ?>">
-                <?= $planIcons[$index] ?? '💎' ?>
+                <?= $planIcons[$index] ?? '<i data-lucide="gem"></i>' ?>
             </div>
             <div class="plan-name"><?= e($plan['name']) ?></div>
             <div class="plan-price">
@@ -72,7 +72,7 @@ $planColors = [
             </ul>
 
             <?php if ($isCurrent): ?>
-                <button class="btn btn-success btn-block" disabled>✅ Current Plan</button>
+                <button class="btn btn-success btn-block" disabled><i data-lucide="check" style="width:16px;"></i> Current Plan</button>
             <?php else: ?>
                 <form method="POST" action="">
                     <?= csrfField() ?>

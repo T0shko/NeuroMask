@@ -59,7 +59,7 @@ require_once __DIR__ . '/../templates/header.php';
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg">
-                    ✉️ Send Message
+                     Send Message
                 </button>
             </form>
         </div>

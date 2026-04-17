@@ -64,20 +64,25 @@ class AIService
         }
 
         // Build the command with escaped arguments for security
-        // Script signature: python process.py <source_path> <target_path> <output_path>
+        // Script signature: python process.py <source_path> <target_path> <output_path> [--mode]
         $pythonPath = escapeshellarg(PYTHON_PATH);
         $scriptPath = escapeshellarg(AI_SCRIPT);
         $sourceArg  = escapeshellarg($sourcePath);
         $targetArg  = escapeshellarg($targetPath);
         $outputArg  = escapeshellarg($outputPath);
+        
+        $modeArg = ($job['effect'] === 'faceswap-hq') ? '--mode hq' : '--mode fast';
 
+        // PYTHONIOENCODING=utf-8 — prevents UnicodeEncodeError on Windows cp1252
+        // TQDM_DISABLE=1        — disables tqdm bars (avoids tqdm_asyncio + ZeroDivisionError on Py3.12)
         $command = sprintf(
-            '%s %s %s %s %s 2>&1',
+            'set PYTHONIOENCODING=utf-8 && set TQDM_DISABLE=1 && %s %s %s %s %s %s 2>&1',
             $pythonPath,
             $scriptPath,
             $sourceArg,
             $targetArg,
-            $outputArg
+            $outputArg,
+            $modeArg
         );
 
         // Execute the Python script
@@ -86,6 +91,7 @@ class AIService
         exec($command, $output, $returnCode);
 
         $outputText = implode("\n", $output);
+        file_put_contents(__DIR__ . '/../../ai_debug.log', "Job $jobId | Mode: $modeArg | Exit Code $returnCode\n" . $outputText . "\n\n", FILE_APPEND);
 
         // Check result
         if ($returnCode === 0 && file_exists($outputPath)) {
@@ -93,8 +99,30 @@ class AIService
             $this->jobModel->updateStatus($jobId, 'completed', $outputName);
             return true;
         } else {
-            // Failed
-            $errorMsg = $outputText ?: 'AI processing failed with exit code ' . $returnCode;
+            // Failed processing - Extract clear error from Python traceback
+            $realError = '';
+            foreach (array_reverse($output) as $line) {
+                $line = trim($line);
+                if (preg_match('/(AssertionError|Exception|Error|\[ERROR\])(:.+|)/i', $line)) {
+                    // Skip generic ONNX warnings that aren't the fatal crash
+                    if (!str_contains($line, 'onnxruntime_providers_cuda.dll')) {
+                        $realError = $line;
+                        break;
+                    }
+                }
+            }
+
+            if (empty($realError) && !empty($output)) {
+                $filtered = array_filter($output, fn($l) => trim($l) && !str_starts_with(trim($l), '[INFO]'));
+                $realError = count($filtered) > 0 ? end($filtered) : 'Unknown Fatal AI Crash';
+            }
+
+            // Clean weird ANSI escape codes python might have outputted
+            $realError = preg_replace('/\e[[][0-9;]*m/', '', $realError);
+            $realError = strip_tags($realError);
+            
+            $errorMsg = $realError ?: 'AI failed with exit code ' . $returnCode;
+            
             $this->jobModel->updateStatus($jobId, 'failed', null, $errorMsg);
             return false;
         }

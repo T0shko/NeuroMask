@@ -18,7 +18,7 @@ require_once __DIR__ . '/../includes/helpers.php';
     <title><?= APP_NAME ?> – <?= APP_TAGLINE ?></title>
     <meta name="description" content="Swap faces between photos using AI-powered deepfake technology. Upload source and target images for instant, realistic face transformations.">
     <link rel="stylesheet" href="<?= assetUrl('css/style.css') ?>">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔷</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'></text></svg>">
 </head>
 <body>
 <div class="landing-page">
@@ -26,7 +26,7 @@ require_once __DIR__ . '/../includes/helpers.php';
     <!-- Navigation -->
     <nav class="landing-nav">
         <div class="nav-brand">
-            <div class="brand-icon">🔷</div>
+            <div class="brand-icon"></div>
             <span class="brand-text"><?= APP_NAME ?></span>
         </div>
         <div class="nav-links">
@@ -46,7 +46,7 @@ require_once __DIR__ . '/../includes/helpers.php';
 
         <div class="hero-content">
             <div class="hero-badge">
-                ✨ Powered by Neural AI Technology
+                 Powered by Neural AI Technology
             </div>
             <h1>
                 Swap Faces with<br>
@@ -58,7 +58,7 @@ require_once __DIR__ . '/../includes/helpers.php';
             </p>
             <div class="hero-actions">
                 <a href="<?= publicUrl('register.php') ?>" class="btn btn-primary btn-lg">
-                    🚀 Start Free
+                     Start Free
                 </a>
                 <a href="#features" class="btn btn-secondary btn-lg">
                     Learn More
@@ -81,12 +81,12 @@ require_once __DIR__ . '/../includes/helpers.php';
                 <p>Powered by InsightFace and OpenCV — real neural face detection and swapping, not basic filters.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🔄</div>
+                <div class="feature-icon"></div>
                 <h3>Instant Face Swap</h3>
                 <p>Upload a source face and a target photo. The AI detects both faces and seamlessly swaps them.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">📸</div>
+                <div class="feature-icon"></div>
                 <h3>Upload or Webcam</h3>
                 <p>Drag and drop images or capture directly from your webcam. Supports JPG and PNG formats.</p>
             </div>
@@ -101,7 +101,7 @@ require_once __DIR__ . '/../includes/helpers.php';
                 <p>Track all your face swap jobs. View source, target, and result with side-by-side comparison.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">💎</div>
+                <div class="feature-icon"></div>
                 <h3>Flexible Plans</h3>
                 <p>Start free with Basic, or unlock unlimited face swaps with Pro and Ultra plans.</p>
             </div>
@@ -117,7 +117,7 @@ require_once __DIR__ . '/../includes/helpers.php';
 
         <div class="pricing-grid" style="margin: 0 auto;">
             <div class="pricing-card">
-                <div class="plan-icon" style="background: rgba(107, 114, 128, 0.15);">🆓</div>
+                <div class="plan-icon" style="background: rgba(107, 114, 128, 0.15);"></div>
                 <div class="plan-name">Basic</div>
                 <div class="plan-price">$0<span>/mo</span></div>
                 <div class="plan-description">Perfect for trying out</div>
@@ -131,7 +131,7 @@ require_once __DIR__ . '/../includes/helpers.php';
             </div>
 
             <div class="pricing-card featured">
-                <div class="plan-icon" style="background: rgba(59, 130, 246, 0.15);">🚀</div>
+                <div class="plan-icon" style="background: rgba(59, 130, 246, 0.15);"></div>
                 <div class="plan-name">Pro</div>
                 <div class="plan-price">$19<span>.99/mo</span></div>
                 <div class="plan-description">For power users</div>
@@ -146,7 +146,7 @@ require_once __DIR__ . '/../includes/helpers.php';
             </div>
 
             <div class="pricing-card">
-                <div class="plan-icon" style="background: rgba(139, 92, 246, 0.15);">👑</div>
+                <div class="plan-icon" style="background: rgba(139, 92, 246, 0.15);"></div>
                 <div class="plan-name">Ultra</div>
                 <div class="plan-price">$49<span>.99/mo</span></div>
                 <div class="plan-description">Unlimited everything</div>
