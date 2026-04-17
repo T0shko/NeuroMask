@@ -1,0 +1,433 @@
+/**
+ * NeuroMask – Transmutation Interface Design
+ * Concept: The Transmutation Chamber
+ * Where identity transformation takes place.
+ */
+
+/* ── Chamber Container ── */
+.transmutation-chamber {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    margin: 40px 0;
+}
+
+/* ── Chamber Station: Individual upload areas ── */
+.chamber-station {
+    background: var(--glass-charcoal);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-ghost);
+    border-radius: var(--radius-biometric);
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.chamber-station::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--gradient-transmutation);
+    opacity: 0.6;
+}
+
+.station-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-ghost);
+}
+
+.station-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 500;
+}
+
+.station-icon {
+    font-size: 32px;
+    color: var(--identity-cyan);
+}
+
+/* ── Specimen Pod: Upload area ── */
+.specimen-pod {
+    position: relative;
+    min-height: 280px;
+    background: var(--void-black);
+    border: 2px dashed var(--border-ghost);
+    border-radius: var(--radius-biometric);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-organic);
+    overflow: hidden;
+}
+
+.specimen-pod:hover {
+    border-color: var(--border-cyan);
+    background: var(--studio-gray);
+}
+
+.specimen-pod.has-image {
+    border-style: solid;
+    border-color: var(--border-ghost);
+}
+
+.specimen-pod img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    max-height: 300px;
+    position: relative;
+    z-index: 1;
+}
+
+.specimen-placeholder {
+    text-align: center;
+    padding: 40px;
+    position: relative;
+    z-index: 1;
+}
+
+.specimen-placeholder-icon {
+    font-size: 72px;
+    margin-bottom: 16px;
+    opacity: 0.2;
+}
+
+.specimen-placeholder-text {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.specimen-placeholder-subtext {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+}
+
+.specimen-pod input[type="file"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+}
+
+/* ── Mode Selector ── */
+.mode-selector {
+    background: var(--glass-charcoal);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-ghost);
+    border-radius: var(--radius-biometric);
+    padding: 40px;
+    margin-top: 32px;
+}
+
+.mode-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-ghost);
+}
+
+.mode-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.mode-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.modes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.mode-option {
+    background: var(--studio-gray);
+    border: 2px solid var(--border-ghost);
+    border-radius: var(--radius-lens);
+    padding: 32px 28px;
+    cursor: pointer;
+    transition: all var(--transition-organic);
+    position: relative;
+    overflow: hidden;
+}
+
+.mode-option::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-transmutation);
+    opacity: 0;
+    transition: opacity var(--transition-organic);
+}
+
+.mode-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.mode-option label {
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+
+.mode-option:hover::before {
+    opacity: 0.05;
+}
+
+.mode-option:hover {
+    border-color: var(--border-cyan);
+}
+
+.mode-option input:checked + label .mode-badge {
+    background: var(--identity-cyan-dim);
+    border-color: var(--border-cyan);
+}
+
+.mode-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: var(--radius-capsule);
+    background: var(--studio-gray);
+    border: 1px solid var(--border-ghost);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+}
+
+.mode-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.mode-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.mode-meta {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-ghost);
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-dim);
+}
+
+.meta-symbol {
+    color: var(--identity-cyan);
+}
+
+/* ── Chamber Actions ── */
+.chamber-actions {
+    margin-top: 32px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+/* ── Processing State ── */
+.chamber-processing {
+    display: none;
+    background: var(--glass-charcoal);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-ghost);
+    border-radius: var(--radius-biometric);
+    padding: 60px 40px;
+    text-align: center;
+    margin-top: 32px;
+}
+
+.chamber-processing.show {
+    display: block;
+    animation: fadeInUp 0.5s ease;
+}
+
+.processing-animation {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 32px;
+    position: relative;
+}
+
+.processing-ring {
+    position: absolute;
+    inset: 0;
+    border: 3px solid var(--border-ghost);
+    border-top-color: var(--identity-cyan);
+    border-radius: 50%;
+    animation: rotateBiometric 2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.processing-ring:nth-child(2) {
+    inset: 12px;
+    animation-delay: 0.2s;
+    border-top-color: var(--identity-warm);
+}
+
+.processing-ring:nth-child(3) {
+    inset: 24px;
+    animation-delay: 0.4s;
+    border-top-color: var(--identity-rose);
+}
+
+.processing-status {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.processing-message {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.processing-progress {
+    max-width: 400px;
+    margin: 32px auto;
+    background: var(--void-black);
+    height: 6px;
+    border-radius: var(--radius-capsule);
+    overflow: hidden;
+}
+
+.processing-progress-fill {
+    height: 100%;
+    background: var(--gradient-transmutation);
+    border-radius: var(--radius-capsule);
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+/* ── Camera Capture ── */
+.camera-capture {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 8, 9, 0.95);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.camera-capture.show {
+    display: flex;
+}
+
+.camera-frame {
+    background: var(--midnight-deep);
+    border: 1px solid var(--border-ghost);
+    border-radius: var(--radius-biometric);
+    padding: 40px;
+    max-width: 700px;
+    width: 100%;
+    text-align: center;
+}
+
+.camera-viewport {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto 32px;
+    border-radius: var(--radius-biometric);
+    overflow: hidden;
+    background: var(--void-black);
+    border: 2px solid var(--border-ghost);
+}
+
+.camera-viewport video {
+    width: 100%;
+    display: block;
+}
+
+.camera-overlay {
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--identity-cyan);
+    border-radius: var(--radius-biometric);
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.camera-overlay::before,
+.camera-overlay::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--identity-cyan);
+}
+
+.camera-overlay::before {
+    top: 12px;
+    left: 12px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.camera-overlay::after {
+    top: 12px;
+    right: 12px;
+    border-left: none;
+    border-bottom: none;
+}
+
+.camera-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .modes-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .chamber-station,
+    .mode-selector,
+    .chamber-processing {
+        padding: 24px;
+    }
+
+    .mode-option {
+        padding: 24px 20px;
+    }
+}

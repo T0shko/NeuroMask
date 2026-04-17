@@ -1,0 +1,904 @@
+/**
+ * NeuroMask – Unique Design System
+ * Concept: Digital Identity Transmutation
+ * A sophisticated, intimate experience that breaks from generic AI aesthetics.
+ *
+ * Design Philosophy:
+ * - Organic forms over rigid grids
+ * - Biometric patterns as decorative elements
+ * - Laboratory/art studio atmosphere
+ * - Transformation as the core visual theme
+ * - Sophisticated noir palette with accent glows
+ */
+
+/* ── Font Import: Custom, sophisticated typography ── */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+/* ── CSS Custom Properties: The Transmutation Palette ── */
+:root {
+    /* Backgrounds: Deep, atmospheric layers */
+    --void-black: #080809;
+    --midnight-deep: #0c0e14;
+    --charcoal-wash: #13151c;
+    --studio-gray: #1a1d26;
+    --shadow-shelf: #22262f;
+
+    /* Biometric Glow Accents */
+    --identity-cyan: #0ea8a8;
+    --identity-cyan-dim: rgba(14, 168, 168, 0.15);
+    --identity-cyan-glow: rgba(14, 168, 168, 0.08);
+    --identity-warm: #c4a574;
+    --identity-warm-dim: rgba(196, 165, 116, 0.15);
+    --identity-rose: #c4748c;
+    --identity-rose-dim: rgba(196, 116, 140, 0.15);
+
+    /* Sophisticated Gradients */
+    --gradient-transmutation: linear-gradient(135deg, #0ea8a8 0%, #c4a574 50%, #c4748c 100%);
+    --gradient-identity: linear-gradient(90deg, #0ea8a8, #c4a574);
+    --gradient-subtle: linear-gradient(180deg, rgba(14, 168, 168, 0.03) 0%, rgba(196, 165, 116, 0.03) 100%);
+
+    /* Biometric Pattern Backgrounds */
+    --pattern-fingerprint: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(14, 168, 168, 0.02) 2px,
+        rgba(14, 168, 168, 0.02) 4px
+    );
+    --pattern-neural:
+        radial-gradient(circle at 20% 30%, rgba(14, 168, 168, 0.04) 1px, transparent 1px),
+        radial-gradient(circle at 80% 70%, rgba(196, 165, 116, 0.04) 1px, transparent 1px),
+        radial-gradient(circle at 40% 80%, rgba(196, 116, 140, 0.04) 1px, transparent 1px);
+    --pattern-scanline: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 50px,
+        rgba(14, 168, 168, 0.01) 50px,
+        rgba(14, 168, 168, 0.01) 51px
+    );
+
+    /* Text: Sophisticated readability */
+    --text-primary: #f0f1f4;
+    --text-secondary: #9ca3b8;
+    --text-dim: #5c6278;
+    --text-accent: #0ea8a8;
+
+    /* Borders: Micro-thin, intentional */
+    --border-ghost: rgba(255, 255, 255, 0.03);
+    --border-faint: rgba(255, 255, 255, 0.06);
+    --border-cyan: rgba(14, 168, 168, 0.2);
+    --border-warm: rgba(196, 165, 116, 0.2);
+
+    /* Glass Morphism: Subtle, not obvious */
+    --glass-void: rgba(8, 8, 9, 0.75);
+    --glass-charcoal: rgba(19, 21, 28, 0.6);
+    --glass-frosted: rgba(26, 29, 38, 0.4);
+
+    /* Shadows: Layered depth */
+    --shadow-lift:
+        0 20px 40px -10px rgba(0, 0, 0, 0.4),
+        0 8px 16px -4px rgba(0, 0, 0, 0.3);
+    --shadow-float:
+        0 30px 60px -12px rgba(0, 0, 0, 0.5),
+        0 12px 24px -6px rgba(0, 0, 0, 0.4);
+    --shadow-glow-cyan: 0 0 30px rgba(14, 168, 168, 0.15);
+    --shadow-glow-warm: 0 0 30px rgba(196, 165, 116, 0.15);
+
+    /* Transitions: Fluid, meaningful */
+    --transition-organic: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-transmute: 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+    --transition-quick: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Border Radius: Biometric curves */
+    --radius-biometric: 24px;
+    --radius-lens: 16px;
+    --radius-capsule: 999px;
+    --radius-micro: 6px;
+
+    /* Layout */
+    --studio-sidebar: 260px;
+    -- sidebar-compact: 72px;
+}
+
+/* ── Reset & Base: Clean foundation ── */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    background: var(--void-black);
+    background-image:
+        var(--pattern-fingerprint),
+        var(--pattern-neural);
+    background-size: 100% 100%, 200px 200px;
+    background-position: 0 0, 0 0;
+    background-attachment: fixed, fixed;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at top, rgba(14, 168, 168, 0.03), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+h1 { font-size: 42px; font-weight: 600; }
+h2 { font-size: 36px; }
+h3 { font-size: 28px; }
+h4 { font-size: 22px; }
+h5 { font-size: 18px; }
+
+a {
+    color: var(--text-accent);
+    text-decoration: none;
+    transition: color var(--transition-quick);
+}
+
+a:hover {
+    color: var(--identity-warm);
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ── Studio Layout: Open, fluid space ── */
+.studio-layout {
+    display: grid;
+    grid-template-columns: var(--studio-sidebar) 1fr;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Sidebar: The Identity Rail ── */
+.identity-rail {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--studio-sidebar);
+    height: 100vh;
+    background: var(--midnight-deep);
+    border-right: 1px solid var(--border-ghost);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    padding: 32px 20px;
+}
+
+.identity-rail::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(
+        180deg,
+        transparent,
+        var(--border-cyan) 20%,
+        var(--border-cyan) 80%,
+        transparent
+    );
+}
+
+.identity-mark {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+    padding: 16px;
+}
+
+.identity-mark-logo {
+    width: 48px;
+    height: 48px;
+    background: var(--gradient-transmutation);
+    border-radius: var(--radius-biometric);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--void-black);
+    position: relative;
+    overflow: hidden;
+}
+
+.identity-mark-logo::after {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    animation: transmute 8s linear infinite;
+}
+
+@keyframes transmute {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.identity-mark-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 600;
+    background: var(--gradient-transmutation);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.05em;
+}
+
+.rail-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rail-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius-lens);
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all var(--transition-organic);
+    position: relative;
+    overflow: hidden;
+}
+
+.rail-link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-transmutation);
+    opacity: 0;
+    transition: opacity var(--transition-organic);
+}
+
+.rail-link:hover {
+    color: var(--text-primary);
+    transform: translateX(4px);
+}
+
+.rail-link:hover::before {
+    opacity: 0.05;
+}
+
+.rail-link.active {
+    color: var(--text-primary);
+    background: var(--identity-cyan-dim);
+    border: 1px solid var(--border-cyan);
+}
+
+.rail-link.active::before {
+    opacity: 0.1;
+}
+
+.rail-icon {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.rail-label {
+    position: relative;
+    z-index: 1;
+}
+
+.rail-group-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin: 24px 0 12px;
+    padding: 0 16px;
+}
+
+/* ── Identity Dock: User at bottom of rail ── */
+.identity-dock {
+    margin-top: auto;
+    padding: 16px;
+    border-radius: var(--radius-lens);
+    background: var(--studio-gray);
+    border: 1px solid var(--border-ghost);
+}
+
+.identity-dock-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.identity-dock-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-capsule);
+    background: var(--gradient-transmutation);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--void-black);
+}
+
+.identity-dock-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.identity-dock-role {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: capitalize;
+}
+
+/* ── Studio Canvas: Main content area ── */
+.studio-canvas {
+    margin-left: var(--studio-sidebar);
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Page Header: Museum-style presentation ── */
+.canvas-header {
+    padding: 48px 48px 24px;
+    position: relative;
+}
+
+.canvas-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 48px;
+    right: 48px;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--border-cyan) 10%,
+        var(--border-cyan) 90%,
+        transparent
+    );
+}
+
+.canvas-header h1 {
+    margin-bottom: 8px;
+    background: var(--gradient-transmutation);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.canvas-header-caption {
+    font-size: 15px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* ── Canvas Content: Fluid container ── */
+.canvas-content {
+    padding: 32px 48px 64px;
+}
+
+/* ── Exhibit Card: Art-gallery presentation ── */
+.exhibit-card {
+    background: var(--glass-charcoal);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-ghost);
+    border-radius: var(--radius-biometric);
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-organic);
+}
+
+.exhibit-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gradient-transmutation);
+    opacity: 0;
+    transition: opacity var(--transition-organic);
+}
+
+.exhibit-card:hover::before {
+    opacity: 1;
+}
+
+.exhibit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-float);
+    border-color: var(--border-cyan);
+}
+
+/* ── Identity Buttons: Sophisticated CTAs ── */
+.btn-identity {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 28px;
+    border-radius: var(--radius-capsule);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-organic);
+    border: none;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-identity::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transition: left 0.6s;
+}
+
+.btn-identity:hover::before {
+    left: 100%;
+}
+
+.btn-primary-identity {
+    background: var(--gradient-transmutation);
+    color: var(--void-black);
+    box-shadow: var(--shadow-glow-cyan);
+}
+
+.btn-primary-identity:hover {
+    box-shadow: var(--shadow-float), var(--shadow-glow-cyan);
+    transform: translateY(-2px) scale(1.02);
+}
+
+.btn-ghost-identity {
+    background: transparent;
+    color: var(--text-accent);
+    border: 1px solid var(--border-cyan);
+}
+
+.btn-ghost-identity:hover {
+    background: var(--identity-cyan-dim);
+    transform: translateY(-2px);
+}
+
+.btn-lens {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-biometric);
+    padding: 0;
+}
+
+/* ── Metrics Display: Laboratory readouts ── */
+.metrics-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.metric-display {
+    background: var(--glass-charcoal);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-ghost);
+    border-radius: var(--radius-biometric);
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-display::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--gradient-transmutation);
+    opacity: 0.5;
+}
+
+.metric-display:hover {
+    border-color: var(--border-cyan);
+}
+
+.metric-display-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.metric-display-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+}
+
+/* ── Transmutation Interface: Upload and process ── */
+.transmutation-stage {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin: 40px 0;
+}
+
+.stage-input {
+    position: relative;
+}
+
+.stage-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+}
+
+/* ── Biometric Upload Area ── */
+.biometric-zone {
+    border: 2px dashed var(--border-faint);
+    border-radius: var(--radius-biometric);
+    padding: 48px;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-organic);
+    position: relative;
+    overflow: hidden;
+    background: var(--glass-charcoal);
+    backdrop-filter: blur(12px);
+}
+
+.biometric-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-transmutation);
+    opacity: 0;
+    transition: opacity var(--transition-organic);
+}
+
+.biometric-zone:hover::before {
+    opacity: 0.03;
+}
+
+.biometric-zone:hover {
+    border-color: var(--border-cyan);
+    transform: scale(1.01);
+}
+
+.biometric-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+
+.biometric-text {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.biometric-subtext {
+    font-size: 13px;
+    color: var(--text-dim);
+    position: relative;
+    z-index: 1;
+}
+
+.biometric-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+}
+
+/* ── Transmutation Result ── */
+.transmutation-result {
+    position: relative;
+    border-radius: var(--radius-biometric);
+    overflow: hidden;
+    background: var(--glass-charcoal);
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-ghost);
+}
+
+.transmutation-processing {
+    text-align: center;
+}
+
+.transmutation-spinner {
+    width: 60px;
+    height: 60px;
+    border: 3px solid var(--border-ghost);
+    border-top-color: var(--identity-cyan);
+    border-radius: 50%;
+    animation: rotateBiometric 2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+    margin: 0 auto 24px;
+}
+
+@keyframes rotateBiometric {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.transmutation-status {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-style: italic;
+    color: var(--text-secondary);
+}
+
+/* ── Usage Indicators: Laboratory gauges ── */
+.laboratory-gauge {
+    background: var(--studio-gray);
+    border-radius: var(--radius-lens);
+    padding: 16px 20px;
+    border: 1px solid var(--border-ghost);
+    margin-bottom: 24px;
+}
+
+.gauge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.gauge-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.gauge-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.gauge-track {
+    height: 6px;
+    background: var(--void-black);
+    border-radius: var(--radius-capsule);
+    overflow: hidden;
+}
+
+.gauge-fill {
+    height: 100%;
+    background: var(--gradient-transmutation);
+    border-radius: var(--radius-capsule);
+    transition: width var(--transition-transmute);
+    width: 0%;
+}
+
+/* ── Job Gallery: Museum display of results ── */
+.job-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.job-artifact {
+    background: var(--glass-charcoal);
+    border: 1px solid var(--border-ghost);
+    border-radius: var(--radius-biometric);
+    overflow: hidden;
+    transition: all var(--transition-organic);
+    position: relative;
+}
+
+.job-artifact:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-float);
+    border-color: var(--border-cyan);
+}
+
+.job-preview {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--void-black);
+}
+
+.job-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-transmute);
+}
+
+.job-artifact:hover .job-preview img {
+    transform: scale(1.05);
+}
+
+.job-meta {
+    padding: 20px;
+}
+
+.job-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.job-date {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-style: italic;
+}
+
+/* ── Modal Lighting: Cinematic overlays ── */
+.lighting-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 8, 9, 0.9);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.lighting-overlay.show {
+    display: flex;
+}
+
+.lighting-frame {
+    background: var(--midnight-deep);
+    border: 1px solid var(--border-ghost);
+    border-radius: var(--radius-biometric);
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 40px;
+    position: relative;
+}
+
+/* ── Utility Classes ─── */
+.lens-text {
+    font-family: 'Cormorant Garamond', serif;
+}
+
+.glyph-text {
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.muted-text {
+    color: var(--text-secondary);
+}
+
+.dim-text {
+    color: var(--text-dim);
+}
+
+.glow-text {
+    text-shadow: 0 0 20px rgba(14, 168, 168, 0.5);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .studio-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .identity-rail {
+        transform: translateX(-100%);
+        transition: transform var(--transition-organic);
+    }
+
+    .identity-rail.open {
+        transform: translateX(0);
+    }
+
+    .studio-canvas {
+        margin-left: 0;
+    }
+
+    .transmutation-stage {
+        grid-template-columns: 1fr;
+    }
+
+    .metrics-gallery {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .canvas-header,
+    .canvas-content {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .canvas-header::after {
+        left: 24px;
+        right: 24px;
+    }
+
+    .metrics-gallery {
+        grid-template-columns: 1fr;
+    }
+
+    .job-gallery {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,742 @@
+/**
+ * NeuroMask – Landing Page Design
+ * Concept: The Transmutation Laboratory
+ * An immersive, atmospheric introduction to identity transformation.
+ */
+
+/* ── Immersive Hero: The Laboratory Entrance ── */
+.lab-entrance {
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.lab-entrance::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 50%, rgba(14, 168, 168, 0.04), transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(196, 165, 116, 0.04), transparent 50%),
+        radial-gradient(circle at 50% 100%, rgba(196, 116, 140, 0.04), transparent 40%);
+    pointer-events: none;
+}
+
+/* ── Biometric Grid Overlay ── */
+.biometric-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(14, 168, 168, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(14, 168, 168, 0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* ── Scanning Line Animation ── */
+.scanning-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--identity-cyan),
+        transparent
+    );
+    opacity: 0.1;
+    animation: scanLine 8s linear infinite;
+}
+
+@keyframes scanLine {
+    0% { top: 0; }
+    100% { top: 100%; }
+}
+
+/* ── Lab Navigation: Minimal, purposeful ── */
+.lab-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 24px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(
+        180deg,
+        rgba(8, 8, 9, 0.8),
+        transparent
+    );
+}
+
+.lab-nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.lab-mark {
+    width: 52px;
+    height: 52px;
+    background: var(--gradient-transmutation);
+    border-radius: var(--radius-biometric);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--void-black);
+    position: relative;
+    overflow: hidden;
+}
+
+.lab-mark::after {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 255, 255, 0.15),
+        transparent
+    );
+    animation: transmute 8s linear infinite;
+}
+
+.lab-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 600;
+    background: var(--gradient-transmutation);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.08em;
+}
+
+.lab-nav-actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* ── Hero Content: Cinematic presentation ── */
+.lab-content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    max-width: 900px;
+    padding: 40px;
+}
+
+.lab-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: var(--radius-capsule);
+    background: var(--identity-cyan-dim);
+    border: 1px solid var(--border-cyan);
+    color: var(--identity-cyan);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 40px;
+    animation: fadeReveal 1s ease;
+}
+
+@keyframes fadeReveal {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.lab-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 72px;
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 32px;
+    color: var(--text-primary);
+    animation: fadeReveal 1s ease 0.1s both;
+}
+
+.lab-title .gradient-word {
+    background: var(--gradient-transmutation);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
+    position: relative;
+}
+
+.lab-title .gradient-word::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gradient-transmutation);
+    opacity: 0.3;
+    transform: scaleX(0);
+    transition: transform var(--transition-transmute);
+}
+
+.lab-title .gradient-word:hover::after {
+    transform: scaleX(1);
+}
+
+.lab-statement {
+    font-size: 19px;
+    color: var(--text-secondary);
+    font-style: italic;
+    line-height: 1.8;
+    margin-bottom: 48px;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeReveal 1s ease 0.2s both;
+}
+
+.lab-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    animation: fadeReveal 1s ease 0.3s both;
+}
+
+/* ── Orbital Circles: Decorative elements ── */
+.orbital {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid var(--border-ghost);
+    pointer-events: none;
+}
+
+.orbital-1 {
+    width: 600px;
+    height: 600px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.2;
+}
+
+.orbital-2 {
+    width: 900px;
+    height: 900px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.1;
+}
+
+.orbital-3 {
+    width: 400px;
+    height: 400px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-color: var(--border-cyan);
+    opacity: 0.15;
+}
+
+/* ── Process Chamber: Interactive demo section ── */
+.process-chamber {
+    padding: 120px 48px;
+    position: relative;
+    background: linear-gradient(
+        180deg,
+        var(--void-black),
+        var(--midnight-deep)
+    );
+}
+
+.chamber-intro {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 80px;
+}
+
+.chamber-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.chamber-subtitle {
+    font-size: 16px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* ── The Transmutation Room: Visual demo ── */
+.transmutation-room {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    background: var(--glass-charcoal);
+    border: 1px solid var(--border-ghost);
+    border-radius: var(--radius-biometric);
+    padding: 48px;
+    backdrop-filter: blur(12px);
+}
+
+.room-stage {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 24px;
+    align-items: center;
+}
+
+.room-pod {
+    background: var(--void-black);
+    border: 2px solid var(--border-ghost);
+    border-radius: var(--radius-biometric);
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.room-pod-source::before {
+    content: 'SOURCE';
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+}
+
+.room-pod-target::before {
+    content: 'TARGET';
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+}
+
+.room-pod-placeholder {
+    text-align: center;
+    padding: 40px;
+}
+
+.room-pod-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.2;
+}
+
+.room-pod-label {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+}
+
+.process-arrow {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--gradient-transmutation);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: var(--void-black);
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(14, 168, 168, 0.3); }
+    50% { box-shadow: 0 0 40px rgba(14, 168, 168, 0.5); }
+}
+
+/* ── Capabilities Gallery: Feature showcase ── */
+.capabilities-gallery {
+    padding: 120px 48px;
+    background: var(--void-black);
+    position: relative;
+}
+
+.gallery-intro {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 80px;
+}
+
+.gallery-intro h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.gallery-intro p {
+    font-size: 16px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.capabilities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.capability-display {
+    background: var(--glass-charcoal);
+    border: 1px solid var(--border-ghost);
+    border-radius: var(--radius-biometric);
+    padding: 40px 36px;
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-organic);
+}
+
+.capability-display::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-transmutation);
+    opacity: 0;
+    transition: opacity var(--transition-organic);
+}
+
+.capability-display::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(14, 168, 168, 0.1), transparent);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.capability-display:hover::before {
+    opacity: 1;
+}
+
+.capability-display:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-float);
+    border-color: var(--border-cyan);
+}
+
+.capability-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--gradient-transmutation);
+    border-radius: var(--radius-biometric);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: var(--void-black);
+    margin-bottom: 24px;
+}
+
+.capability-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.capability-description {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+/* ── Access Laboratory: Pricing section ── */
+.access-laboratory {
+    padding: 120px 48px;
+    position: relative;
+    background:
+        linear-gradient(180deg, var(--void-black), var(--midnight-deep));
+}
+
+.access-intro {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 80px;
+}
+
+.access-intro h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.access-intro p {
+    font-size: 16px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.access-tiers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 32px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.tier-vial {
+    background: var(--glass-charcoal);
+    border: 1px solid var(--border-ghost);
+    border-radius: var(--radius-biometric);
+    padding: 48px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-organic);
+}
+
+.tier-vial::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-transmutation);
+    opacity: 0;
+    transition: opacity var(--transition-organic);
+}
+
+.tier-vialfeatured::before {
+    opacity: 1;
+}
+
+.tier-vialfeatured::after {
+    content: 'MOST SELECTED';
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gradient-transmutation);
+    color: var(--void-black);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: var(--radius-capsule);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.tier-vial:hover::before {
+    opacity: 1;
+}
+
+.tier-vial:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-float);
+    border-color: var(--border-cyan);
+}
+
+.tier-essence {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 24px;
+    background: var(--gradient-transmutation);
+    border-radius: var(--radius-biometric);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: var(--void-black);
+}
+
+.tier-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.tier-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.tier-price span {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+.tier-caption {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 32px;
+}
+
+.tier-capabilities {
+    list-style: none;
+    text-align: left;
+    margin-bottom: 32px;
+}
+
+.tier-capabilities li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    font-size: 15px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-ghost);
+}
+
+.tier-capabilities li::before {
+    content: '◆';
+    color: var(--identity-cyan);
+    font-size: 10px;
+}
+
+/* ── Laboratory Footer ── */
+.lab-footer {
+    padding: 48px;
+    border-top: 1px solid var(--border-ghost);
+    text-align: center;
+    background: var(--midnight-deep);
+}
+
+.lab-footer-text {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+}
+
+/* ── Lab Entrance Hamburger ── */
+.lab-hamburger {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 200;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-biometric);
+    background: var(--midnight-deep);
+    border: 1px solid var(--border-ghost);
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.lab-hamburger span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--text-primary);
+    border-radius: 2px;
+    transition: var(--transition-organic);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+    .lab-title {
+        font-size: 56px;
+    }
+
+    .room-stage {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    .process-arrow {
+        transform: rotate(90deg);
+    }
+
+    .capabilities-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .access-tiers {
+        grid-template-columns: 1fr;
+    }
+
+    .lab-hamburger {
+        display: flex;
+    }
+
+    .lab-nav {
+        transform: translateY(-100%);
+        transition: transform var(--transition-organic);
+    }
+
+    .lab-nav.open {
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 640px) {
+    .lab-nav,
+    .process-chamber,
+    .capabilities-gallery,
+    .access-laboratory {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .lab-title {
+        font-size: 42px;
+    }
+
+    .lab-statement,
+    .lab-actions {
+        font-size: 15px;
+    }
+
+    .lab-actions {
+        flex-direction: column;
+    }
+
+    .transmutation-room {
+        padding: 32px 24px;
+    }
+
+    .capability-display,
+    .tier-vial {
+        padding: 32px 24px;
+    }
+}
