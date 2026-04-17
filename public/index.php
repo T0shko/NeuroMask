@@ -166,7 +166,29 @@ require_once __DIR__ . '/../includes/helpers.php';
 
     <!-- Footer -->
     <footer class="landing-footer">
-        <p>&copy; <?= date('Y') ?> <?= APP_NAME ?>. All rights reserved. Built with 🤖 and ❤️</p>
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="footer-brand">
+                    <div class="brand-icon"></div>
+                    <span><?= APP_NAME ?></span>
+                </div>
+                <p>AI-powered face transformation technology for everyone.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Product</h4>
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="<?= publicUrl('register.php') ?>">Sign Up</a>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; <?= date('Y') ?> <?= APP_NAME ?>. All rights reserved.</p>
+        </div>
     </footer>
 
 </div>
