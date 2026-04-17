@@ -138,15 +138,6 @@ class NeuroSwapEngine:
 
         return result
 
-    def _parse_face(self, parse_model, face_crop, device):
-        import torch
-        face_rgb = cv2.cvtColor(face_crop, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
-        face_rgb = (face_rgb - 0.5) / 0.5
-        face_tensor = torch.from_numpy(face_rgb).permute(2, 0, 1).unsqueeze(0).to(device)
-        with torch.no_grad():
-            out = parse_model(face_tensor)[0]
-        return out.argmax(dim=1).squeeze().cpu().numpy()
-
     def process_hq(self, source_img: np.ndarray, target_img: np.ndarray) -> np.ndarray:
         log_info("Executing HQ Mode...")
         source_face = self.detect_face(source_img, "source")
@@ -155,72 +146,82 @@ class NeuroSwapEngine:
         log_info("Pass 1: Swapping face...")
         result = self.swapper.get(target_img.copy(), target_face, source_face, paste_back=True)
 
-        log_info("Pass 2: Source hair/beard/brow transfer via face parsing...")
+        log_info("Pass 2: Tone correction + source texture transfer...")
         import torch
         from facexlib.utils.face_restoration_helper import FaceRestoreHelper
         from skimage.exposure import match_histograms
 
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        # Wider crop captures hair (top) and beard (bottom) — safe because parse mask limits transfer
-        CROP_RATIO = (1.8, 1.4)
 
-        source_helper = FaceRestoreHelper(upscale_factor=1, face_size=512, crop_ratio=CROP_RATIO, det_model='retinaface_resnet50', save_ext='png', use_parse=True, device=device)
+        source_helper = FaceRestoreHelper(upscale_factor=1, face_size=512, crop_ratio=(1, 1), det_model='retinaface_resnet50', save_ext='png', use_parse=False, device=device)
         source_helper.read_image(source_img)
         source_helper.get_face_landmarks_5(only_center_face=True, eye_dist_threshold=5)
         source_helper.align_warp_face()
+        source_crop = source_helper.cropped_faces[0] if source_helper.cropped_faces else None
 
-        target_helper = FaceRestoreHelper(upscale_factor=1, face_size=512, crop_ratio=CROP_RATIO, det_model='retinaface_resnet50', save_ext='png', use_parse=False, device=device)
+        # Target face crop — used as the lighting/tone reference
+        target_helper = FaceRestoreHelper(upscale_factor=1, face_size=512, crop_ratio=(1, 1), det_model='retinaface_resnet50', save_ext='png', use_parse=False, device=device)
         target_helper.read_image(target_img)
         target_helper.get_face_landmarks_5(only_center_face=True, eye_dist_threshold=5)
         target_helper.align_warp_face()
+        target_crop_ref = target_helper.cropped_faces[0] if target_helper.cropped_faces else None
 
-        face_helper = FaceRestoreHelper(upscale_factor=1, face_size=512, crop_ratio=CROP_RATIO, det_model='retinaface_resnet50', save_ext='png', use_parse=True, device=device)
+        face_helper = FaceRestoreHelper(upscale_factor=1, face_size=512, crop_ratio=(1, 1), det_model='retinaface_resnet50', save_ext='png', use_parse=True, device=device)
         face_helper.read_image(result)
         face_helper.get_face_landmarks_5(only_center_face=False, eye_dist_threshold=5)
         face_helper.align_warp_face()
 
-        if source_helper.cropped_faces and face_helper.cropped_faces:
-            source_crop = source_helper.cropped_faces[0]
-            target_crop_ref = target_helper.cropped_faces[0] if target_helper.cropped_faces else None
-
-            # BiSeNet labels: 1=skin, 2=lbrow, 3=rbrow, 10=nose, 17=hair
-            source_parse = self._parse_face(source_helper.face_parse, source_crop, device)
-            hair = (source_parse == 17).astype(np.float32)
-            brows = ((source_parse == 2) | (source_parse == 3)).astype(np.float32)
-            # Beard zone: skin pixels in the lower portion of the aligned face (below mouth ≈ y>380/512)
-            skin = (source_parse == 1).astype(np.float32)
-            beard = np.zeros_like(skin)
-            beard[380:, :] = skin[380:, :]
-
-            transfer_mask = np.clip(hair + brows + beard, 0, 1)
-            transfer_mask = cv2.GaussianBlur(transfer_mask, (15, 15), 0)
-
-            # Tone-match source to target's lighting distribution
+        if source_crop is not None:
             tone_ref = target_crop_ref if target_crop_ref is not None else face_helper.cropped_faces[0]
-            source_matched = np.clip(match_histograms(source_crop, tone_ref, channel_axis=-1), 0, 255).astype(np.uint8)
-
             for idx, ai_crop in enumerate(face_helper.cropped_faces):
-                mask_3c = transfer_mask[..., None]
-                composite = source_matched.astype(np.float32) * mask_3c + ai_crop.astype(np.float32) * (1 - mask_3c)
-                face_helper.add_restored_face(np.clip(composite, 0, 255).astype(np.uint8))
+                # Correct inswapper brightness to match target portrait lighting
+                ai_corrected = np.clip(match_histograms(ai_crop, tone_ref, channel_axis=-1), 0, 255).astype(np.uint8)
+
+                # 101px blur: only sub-101px detail (beard stubble, eyebrow hairs) in high-pass
+                source_matched = np.clip(match_histograms(source_crop, tone_ref, channel_axis=-1), 0, 255).astype(np.uint8)
+                blur_kernel = (101, 101)
+                low_pass_ai = cv2.GaussianBlur(ai_corrected, blur_kernel, 0).astype(np.float32)
+                low_pass_source = cv2.GaussianBlur(source_matched, blur_kernel, 0).astype(np.float32)
+                high_pass_source = source_matched.astype(np.float32) - low_pass_source
+
+                # Strip color: prevents RGB artifacts in B&W output
+                hp_gray = cv2.cvtColor(
+                    np.clip(high_pass_source + 128, 0, 255).astype(np.uint8),
+                    cv2.COLOR_BGR2GRAY
+                ).astype(np.float32) - 128
+                high_pass_source = cv2.merge([hp_gray, hp_gray, hp_gray])
+
+                h, w = high_pass_source.shape[:2]
+                Y, X = np.ogrid[:h, :w]
+                cx, cy = w // 2, h // 2
+                weight = np.exp(-0.5 * (((X - cx) / (w * 0.42))**2 + ((Y - cy) / (h * 0.48))**2))
+                high_pass_source = high_pass_source * weight[:, :, np.newaxis]
+
+                texture_restored = low_pass_ai + high_pass_source
+                texture_restored = (
+                    texture_restored * weight[:, :, np.newaxis] +
+                    ai_corrected.astype(np.float32) * (1 - weight[:, :, np.newaxis])
+                )
+                texture_restored = np.clip(texture_restored, 0, 255).astype(np.uint8)
+                face_helper.add_restored_face(texture_restored)
 
             face_helper.get_inverse_affine(None)
             result = face_helper.paste_faces_to_input_image(save_path=None, upsample_img=result)
 
-        # Light GFPGAN at 0.3 — cleans boundary seams without regenerating hair/beard
+        # GFPGAN at 0.5: cleans inswapper artifacts
         if self.gfpgan:
-            log_info("Pass 3: GFPGAN seam cleanup (weight=0.3)...")
+            log_info("Pass 3: GFPGAN cleanup (weight=0.5)...")
             try:
-                _, _, result = self.gfpgan.enhance(result, has_aligned=False, only_center_face=False, paste_back=True, weight=0.3)
+                _, _, result = self.gfpgan.enhance(result, has_aligned=False, only_center_face=False, paste_back=True, weight=0.5)
             except TypeError:
                 _, _, result = self.gfpgan.enhance(result, has_aligned=False, only_center_face=False, paste_back=True)
 
-        # Pass 4: Brightness match — force face region to match target's tonal distribution
+        # Pass 4: Brightness match — force face region to match target's original tonal distribution
         log_info("Pass 4: Face brightness match...")
         bbox = target_face.bbox.astype(int)
-        pad_x = int((bbox[2] - bbox[0]) * 0.4)
-        pad_y_top = int((bbox[3] - bbox[1]) * 0.6)
-        pad_y_bot = int((bbox[3] - bbox[1]) * 0.4)
+        pad_x = int((bbox[2] - bbox[0]) * 0.35)
+        pad_y_top = int((bbox[3] - bbox[1]) * 0.5)
+        pad_y_bot = int((bbox[3] - bbox[1]) * 0.35)
         x1 = max(0, bbox[0] - pad_x)
         y1 = max(0, bbox[1] - pad_y_top)
         x2 = min(result.shape[1], bbox[2] + pad_x)
@@ -230,8 +231,8 @@ class NeuroSwapEngine:
             target_roi = target_img[y1:y2, x1:x2]
             matched_roi = np.clip(match_histograms(result_roi, target_roi, channel_axis=-1), 0, 255).astype(np.uint8)
             rh, rw = matched_roi.shape[:2]
-            fy = max(8, rh // 6)
-            fx = max(8, rw // 6)
+            fy = max(8, rh // 5)
+            fx = max(8, rw // 5)
             mask = np.ones((rh, rw), dtype=np.float32)
             ramp_y = np.linspace(0, 1, fy)
             ramp_x = np.linspace(0, 1, fx)
